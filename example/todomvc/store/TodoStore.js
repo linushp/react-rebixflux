@@ -59,6 +59,8 @@ function wrapperOn(func) {
 
 export default Rebixflux.createStore({
 
+    forAction: "todomvc",
+    
     initialState: (function () {
         var initialState = {
             saving: false,
@@ -74,7 +76,6 @@ export default Rebixflux.createStore({
         return initialState;
     })(),
 
-    forAction: "todomvc",
 
     'onAddTodo': wrapperOn(function (state, {payload, status}) {
         state.todoList.unshift({
