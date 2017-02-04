@@ -673,10 +673,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _createStore = __webpack_require__(4);
 
+	var STORE_CLASS_NAME_CONST = _createStore.STORE_CLASS_NAME;
+
 	function mergeStoreState(storeConfig) {
 	    var result = {};
 	    (0, _utilsFunctions.forEach)(storeConfig, function (storeIns, name) {
-	        if (storeIns && storeIns.$$RebixfluxStoreClassName === _createStore.STORE_CLASS_NAME) {
+	        if (storeIns && storeIns.$$RebixfluxStoreClassName === STORE_CLASS_NAME_CONST) {
 	            result[name] = storeIns.getState();
 	        }
 	    });
@@ -699,7 +701,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            throw new Error('NullPointer');
 	        }
 	        this.$$storeConfig = storeConfig;
-	        this.$$RebixfluxStoreClassName = _createStore.STORE_CLASS_NAME;
+	        this.$$RebixfluxStoreClassName = STORE_CLASS_NAME_CONST;
 	        this.$$eventBus = new _utilsEventBus2['default']('MergedStoreEventBus');
 	        this.$$state = mergeStoreState(storeConfig);
 	        this.enableListener();
@@ -711,7 +713,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var that = this;
 	            var storeConfig = this.$$storeConfig;
 	            (0, _utilsFunctions.forEach)(storeConfig, function (storeIns) {
-	                if (storeIns && storeIns.$$RebixfluxStoreClassName === _createStore.STORE_CLASS_NAME) {
+	                if (storeIns && storeIns.$$RebixfluxStoreClassName === STORE_CLASS_NAME_CONST) {
 	                    storeIns.addChangeListener(that.$$handleSubStoreChange);
 	                }
 	            });
@@ -722,7 +724,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var that = this;
 	            var storeConfig = this.$$storeConfig;
 	            (0, _utilsFunctions.forEach)(storeConfig, function (storeIns) {
-	                if (storeIns && storeIns.$$RebixfluxStoreClassName === _createStore.STORE_CLASS_NAME) {
+	                if (storeIns && storeIns.$$RebixfluxStoreClassName === STORE_CLASS_NAME_CONST) {
 	                    storeIns.removeChangeListener(that.$$handleSubStoreChange);
 	                }
 	            });
