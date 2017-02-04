@@ -1,4 +1,4 @@
-import {forEach} from './utils/functions'
+import {forEach,isString} from './utils/functions'
 import {toArray} from './utils/ArrayUtils';
 import isPromise from './utils/isPromise';
 import ActionEventBus,{ActionEvent,CommandEvent}from './utils/ActionEventBus';
@@ -18,7 +18,7 @@ export function createAction(actionGroup, actionName, func, actionsConfig = {}, 
     return function () {
 
         var args = toArray(arguments);
-        var result = func.call(actionsConfig || {}, args);
+        var result = func.apply(actionsConfig || {}, args);
         if (isPromise(result)) {
 
             result.then(function (data) {
@@ -38,7 +38,18 @@ export function createAction(actionGroup, actionName, func, actionsConfig = {}, 
 }
 
 
+/**
+ *
+ * @param actionGroup 必须是字符串
+ * @param actionsConfig 必须是对象
+ * @returns {{}}
+ */
 export function createActions(actionGroup, actionsConfig) {
+
+    if(!isString(actionGroup)){
+        throw new Error('1st param of createActions must string');
+    }
+
     var actions = {};
 
     forEach(actionsConfig, function (func, actionName) {

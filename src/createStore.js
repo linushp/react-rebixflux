@@ -47,7 +47,14 @@ function handleActionOrCommandEvent(that, actionEvent, prefix) {
             that.$$state = extend({}, that.$$state, changedState);
             that.$$eventBus.emit(EVENT_STORE_CHANGE, changedState, that);
         };
-        reducer(actionEvent, emitChange, that.$$state);
+
+        var result = reducer(actionEvent, that.$$state, emitChange);
+
+        if (result) {
+            that.$$state = result;
+            that.$$eventBus.emit(EVENT_STORE_CHANGE, {}, that);
+        }
+        
     }
 }
 

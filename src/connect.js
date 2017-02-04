@@ -3,20 +3,29 @@ import {extend,isArray,forEach} from './utils/functions';
 import ActionEventBus,{CommandEvent} from './utils/ActionEventBus';
 import {toFirstCharUpper} from './utils/StringUtils';
 
+const STATE_ITEM_NAME = 'state';
 
 function getStateParam(state, isArrayStoreIns, storeInsArrayLength) {
+
     if (!isArrayStoreIns) {
-        return state['state0'];// 参数不是数组,结果也不是数组
+        return state[STATE_ITEM_NAME + 0];// 参数不是数组,结果也不是数组
     }
 
     var result = [];
     for (var i = 0; i < storeInsArrayLength; i++) {
-        result.push(state['state' + i]);
+        result.push(state[STATE_ITEM_NAME + i]);
     }
     return result;
 }
 
 
+/**
+ *
+ * @param BaseComponent  必选
+ * @param StoreIns 可选  //TODO
+ * @param mapStateToProps 可选
+ * @returns {ComponentWrapper}
+ */
 export default function connect(BaseComponent, StoreIns, mapStateToProps) {
 
     var isArrayStoreIns = isArray(StoreIns);
@@ -27,6 +36,7 @@ export default function connect(BaseComponent, StoreIns, mapStateToProps) {
         constructor(props) {
             super(props);
             this.state = {};
+            this.stateInited = false;
         }
 
         componentDidMount() {
@@ -38,6 +48,7 @@ export default function connect(BaseComponent, StoreIns, mapStateToProps) {
                 StoreIns0.addChangeListener(that.handleAllStoreChange);
             });
             this.handleAllStoreChange();
+
         }
 
         componentWillUnmount() {
@@ -71,21 +82,32 @@ export default function connect(BaseComponent, StoreIns, mapStateToProps) {
                 if (StoreInsSource) {
                     if (StoreIns0 === StoreInsSource) {
                         stateTmp = StoreIns0.getState();
-                        stateMerge['state' + index] = stateTmp;
+                        stateMerge[STATE_ITEM_NAME + index] = stateTmp;
                     }
                 } else {
                     stateTmp = StoreIns0.getState();
-                    stateMerge['state' + index] = stateTmp;
+                    stateMerge[STATE_ITEM_NAME + index] = stateTmp;
                 }
             });
 
+            this.stateInited = true;
             this.setState(stateMerge);
+
         };
 
         render() {
-            var props = this.props;
-            var stateParamForCalc = getStateParam(this.state, isArrayStoreIns, storeInsArrayLength);
-            props = extend({}, props, mapStateToProps(stateParamForCalc, props));
+
+            if(!this.stateInited){
+                return null;
+            }
+
+            var props = this.props || {};
+
+            if(mapStateToProps){
+                var stateParamForCalc = getStateParam(this.state, isArrayStoreIns, storeInsArrayLength);
+                props = extend({}, props, mapStateToProps(stateParamForCalc, props));
+            }
+
             return (<BaseComponent {...props} ref="BaseComponentIns"/>);
         }
 
