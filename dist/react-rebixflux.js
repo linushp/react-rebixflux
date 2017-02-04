@@ -83,7 +83,7 @@ return /******/ (function(modules) { // webpackBootstrap
 "use strict";
 
 
-Object.defineProperty(exports, "__esModule", {
+Object.defineProperty(exports, '__esModule', {
     value: true
 });
 var keysFunc = Object.keys;
@@ -113,6 +113,11 @@ exports.extend = extend;
 var isArray = Array.isArray;
 
 exports.isArray = isArray;
+var isString = function isString(obj) {
+    return typeof obj === 'string';
+};
+
+exports.isString = isString;
 var forEach = function forEach(obj, it) {
     if (isArray(obj)) {
         Array.prototype.forEach.call(obj, it);
@@ -352,7 +357,7 @@ function handleActionOrCommandEvent(that, actionEvent, prefix) {
             that.$$eventBus.emit(EVENT_STORE_CHANGE, changedState, that);
         };
 
-        var result = reducer(actionEvent, that.$$state, emitChange);
+        var result = reducer(that.$$state, actionEvent, emitChange);
 
         if (result) {
             that.$$state = result;

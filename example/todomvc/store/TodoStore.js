@@ -45,7 +45,7 @@ function calculateViewTodoList(state) {
 const LOCAL_STORAGE_KEY = "react_rebix_todo_mvc";
 
 function wrapperOn(func) {
-    return function (action, state) {
+    return function (state,action) {
         console.log('status', action.status);
         state =  objectAssign({}, state);
         state = func(state, action);

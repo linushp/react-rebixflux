@@ -23,6 +23,10 @@ export const extend = Object.assign || objectAssign;
 
 export const isArray = Array.isArray;
 
+export const isString = function (obj) {
+    return typeof obj ==='string';
+};
+
 export const forEach = function (obj, it) {
     if (isArray(obj)) {
         Array.prototype.forEach.call(obj,it);
@@ -35,5 +39,3 @@ export const forEach = function (obj, it) {
         }
     }
 };
-
-

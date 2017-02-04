@@ -16,11 +16,11 @@ export default createStore({
 
     forAction: 'Performance', // 可选 ActionGroup
 
-    onAddTodo: function (action, emitChange, state) {
+    onAddTodo: function (state,action,emitChange) {
         emitChange({todoList: [1, 2, 3]});
     },
 
-    'salary#onAddTodo': function (action, emitChange, state) {
+    'salary#onAddTodo': function (state,action,emitChange) {
         emitChange({todoList: [1, 2, 3]});
     },
 

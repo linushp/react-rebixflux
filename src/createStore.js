@@ -1,8 +1,8 @@
 import EventBus from './utils/EventBus';
-import ActionEventBus,{ActionEvent,CommandEvent} from './utils/ActionEventBus';
-import {toFirstCharUpper,startWith} from './utils/StringUtils';
+import ActionEventBus, {ActionEvent, CommandEvent} from './utils/ActionEventBus';
+import {toFirstCharUpper, startWith} from './utils/StringUtils';
 import {toArray} from './utils/ArrayUtils';
-import {extend,forEach} from './utils/functions';
+import {extend, forEach} from './utils/functions';
 
 
 export const EVENT_STORE_CHANGE = 'StoreChange';
@@ -10,7 +10,7 @@ export const STORE_CLASS_NAME = 'RebixfluxStore';
 
 
 function getReducer(storeConfig, actionEvent, prefix) {
-    var {actionName,actionGroup} = actionEvent;
+    var {actionName, actionGroup} = actionEvent;
     var reducerReceiveName = prefix + toFirstCharUpper(actionName);//onXXX or onCmdXXX
     if (prefix === 'onCmd') {
         return storeConfig[reducerReceiveName];
@@ -48,13 +48,13 @@ function handleActionOrCommandEvent(that, actionEvent, prefix) {
             that.$$eventBus.emit(EVENT_STORE_CHANGE, changedState, that);
         };
 
-        var result = reducer(actionEvent, that.$$state, emitChange);
+        var result = reducer(that.$$state, actionEvent, emitChange);
 
         if (result) {
             that.$$state = result;
             that.$$eventBus.emit(EVENT_STORE_CHANGE, {}, that);
         }
-        
+
     }
 }
 
