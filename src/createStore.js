@@ -2,8 +2,7 @@ import EventBus from './utils/EventBus';
 import ActionEventBus,{ActionEvent,CommandEvent} from './utils/ActionEventBus';
 import {toFirstCharUpper,startWith} from './utils/StringUtils';
 import {toArray} from './utils/ArrayUtils';
-import extend from 'lodash/extend'
-import forEach from 'lodash/forEach'
+import {extend,forEach} from './utils/functions';
 
 
 export const EVENT_STORE_CHANGE = 'StoreChange';

@@ -1,7 +1,4 @@
 import React from 'react';
-//import extend from 'lodash/extend'
-//import isArray from 'lodash/isArray'
-//import forEach from 'lodash/forEach'
 import {extend,isArray,forEach} from './utils/functions';
 import ActionEventBus,{CommandEvent} from './utils/ActionEventBus';
 import {toFirstCharUpper} from './utils/StringUtils';
