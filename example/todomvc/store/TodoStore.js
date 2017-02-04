@@ -10,12 +10,11 @@ function getUniqueId() {
 
 function setTodoListItemAttr(state, callback) {
     state.todoList = [].concat(state.todoList).map(function (m, i) {
-        m =  objectAssign({}, m);
+        m = objectAssign({}, m);
         return callback(m, i);
     });
     return state;
 }
-
 
 
 function calculateViewTodoList(state) {
@@ -45,9 +44,9 @@ function calculateViewTodoList(state) {
 const LOCAL_STORAGE_KEY = "react_rebix_todo_mvc";
 
 function wrapperOn(func) {
-    return function (state,action) {
+    return function (state, action) {
         console.log('status', action.status);
-        state =  objectAssign({}, state);
+        state = objectAssign({}, state);
         state = func(state, action);
         state = calculateViewTodoList(state);
         var json = JSON.stringify(state);
@@ -60,7 +59,7 @@ function wrapperOn(func) {
 export default Rebixflux.createStore({
 
     forAction: "todomvc",
-    
+
     initialState: (function () {
         var initialState = {
             saving: false,
@@ -78,12 +77,14 @@ export default Rebixflux.createStore({
 
 
     'onAddTodo': wrapperOn(function (state, {payload, status}) {
-        state.todoList.unshift({
-            id: getUniqueId(),
-            title: payload,
-            completed: false
-        });
-        state.todoList = [].concat(state.todoList);
+        if (status === 'success') {
+            state.todoList.unshift({
+                id: getUniqueId(),
+                title: payload,
+                completed: false
+            });
+            state.todoList = [].concat(state.todoList);
+        }
         return state;
     }),
 

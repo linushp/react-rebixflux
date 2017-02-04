@@ -3,7 +3,12 @@ import Rebixflux from 'react-rebixflux';
 
 export default Rebixflux.createActions("todomvc",{
     addTodo: function (newTitle) {
-        return newTitle;
+        // return newTitle;
+        return new Promise(function (resolve) {
+            setTimeout(()=>{
+                resolve(newTitle);
+            },1000);
+        })
     },
     toggleItem: function (todo) {
         return todo;

@@ -7,7 +7,7 @@ import ActionEventBus from './utils/ActionEventBus';
 
 import * as functions from './utils/functions';
 import * as StringUtils from './utils/StringUtils';
-import  * as ArrayUtils from './utils/ArrayUtils';
+import * as ArrayUtils from './utils/ArrayUtils';
 
 var exportObject = {
     createCommand: createCommand,

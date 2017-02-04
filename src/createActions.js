@@ -1,16 +1,16 @@
-import {forEach,isString} from './utils/functions'
+import {forEach, isString} from './utils/functions'
 import {toArray} from './utils/ArrayUtils';
 import isPromise from './utils/isPromise';
-import ActionEventBus,{ActionEvent,CommandEvent}from './utils/ActionEventBus';
+import ActionEventBus, {ActionEvent, CommandEvent}from './utils/ActionEventBus';
 
 
-function createActionEvent(actionGroup, actionName, status, payload) {
-    return {
+function emitActionEvent(actionGroup, actionName, eventName, status, payload) {
+    ActionEventBus.emit(eventName, {
         actionName,
         actionGroup,
         status,
         payload
-    };
+    });
 }
 
 export function createAction(actionGroup, actionName, func, actionsConfig = {}, eventName = ActionEvent) {
@@ -22,14 +22,14 @@ export function createAction(actionGroup, actionName, func, actionsConfig = {}, 
         if (isPromise(result)) {
 
             result.then(function (data) {
-                ActionEventBus.emit(eventName, createActionEvent(actionGroup, actionName, 'success', data));
+                emitActionEvent(actionGroup, actionName, eventName, 'success', data);
             }, function (data) {
-                ActionEventBus.emit(eventName, createActionEvent(actionGroup, actionName, 'error', data));
+                emitActionEvent(actionGroup, actionName, eventName, 'error', data);
             });
 
-            ActionEventBus.emit(eventName, createActionEvent(actionGroup, actionName, 'pending', result));
+            emitActionEvent(actionGroup, actionName, eventName, 'pending', result);
         } else {
-            ActionEventBus.emit(eventName, createActionEvent(actionGroup, actionName, 'success', result));
+            emitActionEvent(actionGroup, actionName, eventName, 'success', result);
         }
 
         return result;
@@ -46,7 +46,7 @@ export function createAction(actionGroup, actionName, func, actionsConfig = {}, 
  */
 export function createActions(actionGroup, actionsConfig) {
 
-    if(!isString(actionGroup)){
+    if (!isString(actionGroup)) {
         throw new Error('1st param of createActions must string');
     }
 

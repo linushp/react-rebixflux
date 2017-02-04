@@ -653,13 +653,13 @@ var _utilsActionEventBus = __webpack_require__(1);
 
 var _utilsActionEventBus2 = _interopRequireDefault(_utilsActionEventBus);
 
-function createActionEvent(actionGroup, actionName, status, payload) {
-    return {
+function emitActionEvent(actionGroup, actionName, eventName, status, payload) {
+    _utilsActionEventBus2['default'].emit(eventName, {
         actionName: actionName,
         actionGroup: actionGroup,
         status: status,
         payload: payload
-    };
+    });
 }
 
 function createAction(actionGroup, actionName, func) {
@@ -673,14 +673,14 @@ function createAction(actionGroup, actionName, func) {
         if ((0, _utilsIsPromise2['default'])(result)) {
 
             result.then(function (data) {
-                _utilsActionEventBus2['default'].emit(eventName, createActionEvent(actionGroup, actionName, 'success', data));
+                emitActionEvent(actionGroup, actionName, eventName, 'success', data);
             }, function (data) {
-                _utilsActionEventBus2['default'].emit(eventName, createActionEvent(actionGroup, actionName, 'error', data));
+                emitActionEvent(actionGroup, actionName, eventName, 'error', data);
             });
 
-            _utilsActionEventBus2['default'].emit(eventName, createActionEvent(actionGroup, actionName, 'pending', result));
+            emitActionEvent(actionGroup, actionName, eventName, 'pending', result);
         } else {
-            _utilsActionEventBus2['default'].emit(eventName, createActionEvent(actionGroup, actionName, 'success', result));
+            emitActionEvent(actionGroup, actionName, eventName, 'success', result);
         }
 
         return result;
