@@ -1,10 +1,14 @@
 import React from 'react';
-import {extend,isArray,forEach} from './utils/functions';
+import {extend, isArray, forEach} from './utils/functions';
 import shallowEqual from './utils/shallowEqual';
-import ActionEventBus,{CommandEvent} from './utils/ActionEventBus';
+import ActionEventBus, {CommandEvent} from './utils/ActionEventBus';
 import {toFirstCharUpper} from './utils/StringUtils';
 
 const STATE_ITEM_NAME = 'state';
+
+const CONST_TRUE = true;
+const CONST_FALSE = false;
+const CONST_NULL = null;
 
 function getStateParam(state, isArrayStoreIns, storeInsArrayLength) {
 
@@ -20,13 +24,13 @@ function getStateParam(state, isArrayStoreIns, storeInsArrayLength) {
 }
 
 
-function setStateDebounce(that,changeState){
+function setStateDebounce(that, changeState) {
 
     // var that = this;
 
     if (that.stateDebounceHandler) {
         clearTimeout(that.stateDebounceHandler);
-        that.stateDebounceHandler = null;
+        that.stateDebounceHandler = CONST_NULL;
     }
 
     extend(that.stateWaiting, changeState);
@@ -34,8 +38,8 @@ function setStateDebounce(that,changeState){
     that.stateDebounceHandler = setTimeout(()=> {
         var stateWaiting = that.stateWaiting;
         that.stateWaiting = {};
-        that.stateDebounceHandler = null;
-        that.hasStoreStateChanged = true;
+        that.stateDebounceHandler = CONST_NULL;
+        that.hasStoreStateChanged = CONST_TRUE;
         that.setState(stateWaiting);
     }, 1);
 
@@ -48,14 +52,14 @@ function setStateDebounce(that,changeState){
  * @param mapStateToProps 可选
  * @returns {ComponentWrapper}
  */
-export default function connect(BaseComponent, StoreIns, mapStateToProps,options) {
+export default function connect(BaseComponent, StoreIns, mapStateToProps, options) {
 
     options = extend({
-        pure:true,
-        debounce:true
-    },options||{});
+        pure: CONST_TRUE,
+        debounce: CONST_FALSE
+    }, options || {});
 
-    var {pure,debounce} = options;
+    var {pure, debounce} = options;
 
     var isArrayStoreIns = isArray(StoreIns);
     var storeInsArray = isArrayStoreIns ? StoreIns : [StoreIns];
@@ -65,12 +69,12 @@ export default function connect(BaseComponent, StoreIns, mapStateToProps,options
         constructor(props) {
             super(props);
             this.state = {};
-            this.stateInited = false;
+            this.stateInited = CONST_FALSE;
             this.stateDebounceHandler = 0; //timeoutHandler
             this.stateWaiting = {};
 
-            this.haveOwnPropsChanged = true;
-            this.hasStoreStateChanged = true;
+            this.haveOwnPropsChanged = CONST_TRUE;
+            this.hasStoreStateChanged = CONST_TRUE;
         }
 
         shouldComponentUpdate() {
@@ -80,7 +84,7 @@ export default function connect(BaseComponent, StoreIns, mapStateToProps,options
 
         componentWillReceiveProps(nextProps) {
             if (!pure || !shallowEqual(nextProps, this.props)) {
-                this.haveOwnPropsChanged = true;
+                this.haveOwnPropsChanged = CONST_TRUE;
             }
         }
 
@@ -92,7 +96,7 @@ export default function connect(BaseComponent, StoreIns, mapStateToProps,options
             forEach(storeInsArray, function (StoreIns0) {
                 StoreIns0.addChangeListener(that.handleAllStoreChange);
             });
-            this.handleAllStoreChange();
+            that.handleAllStoreChange();
 
         }
 
@@ -105,15 +109,15 @@ export default function connect(BaseComponent, StoreIns, mapStateToProps,options
                 StoreIns0.removeChangeListener(that.handleAllStoreChange);
             });
 
-            if(that.stateDebounceHandler){
+            if (that.stateDebounceHandler) {
                 clearTimeout(that.stateDebounceHandler);
-                that.stateDebounceHandler = null;
+                that.stateDebounceHandler = CONST_NULL;
             }
         }
 
 
         //View层也可以直接接收Command的消息.
-        handleCommand = ({actionName,actionGroup,payload,status})=> {
+        handleCommand = ({actionName, actionGroup, payload, status})=> {
             var commandHandlerName = "onCmd" + toFirstCharUpper(actionName);// onCmdXXX
             var componentIns = this.refs['BaseComponentIns'];
             if (componentIns) {
@@ -126,6 +130,8 @@ export default function connect(BaseComponent, StoreIns, mapStateToProps,options
 
 
         handleAllStoreChange = (changedState, StoreInsSource)=> {
+            var that = this;
+
             var stateMerge = {};
             var stateTmp;
             forEach(storeInsArray, function (StoreIns0, index) {
@@ -140,32 +146,32 @@ export default function connect(BaseComponent, StoreIns, mapStateToProps,options
                 }
             });
 
-            this.stateInited = true;
+            that.stateInited = CONST_TRUE;
 
-            if(debounce){
+            if (debounce) {
                 //防抖
-                setStateDebounce(this, stateMerge)
-            }else {
-                this.setState(stateMerge);
+                setStateDebounce(that, stateMerge)
+            } else {
+                that.hasStoreStateChanged = CONST_TRUE;
+                that.setState(stateMerge);
             }
-            
+
         };
 
 
-
         render() {
-
-            if(!this.stateInited){
-                return null;
+            var that = this;
+            if (!that.stateInited) {
+                return CONST_NULL;
             }
 
-            this.haveOwnPropsChanged = false;
-            this.hasStoreStateChanged = false;
+            that.haveOwnPropsChanged = CONST_FALSE;
+            that.hasStoreStateChanged = CONST_FALSE;
 
-            var props = this.props || {};
+            var props = that.props || {};
 
-            if(mapStateToProps){
-                var stateParamForCalc = getStateParam(this.state, isArrayStoreIns, storeInsArrayLength);
+            if (mapStateToProps) {
+                var stateParamForCalc = getStateParam(that.state, isArrayStoreIns, storeInsArrayLength);
                 props = extend({}, props, mapStateToProps(stateParamForCalc, props));
             }
 

@@ -540,6 +540,10 @@ var _utilsStringUtils = __webpack_require__(4);
 
 var STATE_ITEM_NAME = 'state';
 
+var CONST_TRUE = true;
+var CONST_FALSE = false;
+var CONST_NULL = null;
+
 function getStateParam(state, isArrayStoreIns, storeInsArrayLength) {
 
     if (!isArrayStoreIns) {
@@ -559,7 +563,7 @@ function setStateDebounce(that, changeState) {
 
     if (that.stateDebounceHandler) {
         clearTimeout(that.stateDebounceHandler);
-        that.stateDebounceHandler = null;
+        that.stateDebounceHandler = CONST_NULL;
     }
 
     (0, _utilsFunctions.extend)(that.stateWaiting, changeState);
@@ -567,8 +571,8 @@ function setStateDebounce(that, changeState) {
     that.stateDebounceHandler = setTimeout(function () {
         var stateWaiting = that.stateWaiting;
         that.stateWaiting = {};
-        that.stateDebounceHandler = null;
-        that.hasStoreStateChanged = true;
+        that.stateDebounceHandler = CONST_NULL;
+        that.hasStoreStateChanged = CONST_TRUE;
         that.setState(stateWaiting);
     }, 1);
 }
@@ -584,8 +588,8 @@ function setStateDebounce(that, changeState) {
 function connect(BaseComponent, StoreIns, mapStateToProps, options) {
 
     options = (0, _utilsFunctions.extend)({
-        pure: true,
-        debounce: true
+        pure: CONST_TRUE,
+        debounce: CONST_FALSE
     }, options || {});
 
     var _options = options;
@@ -623,6 +627,8 @@ function connect(BaseComponent, StoreIns, mapStateToProps, options) {
             };
 
             this.handleAllStoreChange = function (changedState, StoreInsSource) {
+                var that = _this;
+
                 var stateMerge = {};
                 var stateTmp;
                 (0, _utilsFunctions.forEach)(storeInsArray, function (StoreIns0, index) {
@@ -637,23 +643,24 @@ function connect(BaseComponent, StoreIns, mapStateToProps, options) {
                     }
                 });
 
-                _this.stateInited = true;
+                that.stateInited = CONST_TRUE;
 
                 if (debounce) {
                     //防抖
-                    setStateDebounce(_this, stateMerge);
+                    setStateDebounce(that, stateMerge);
                 } else {
-                    _this.setState(stateMerge);
+                    that.hasStoreStateChanged = CONST_TRUE;
+                    that.setState(stateMerge);
                 }
             };
 
             this.state = {};
-            this.stateInited = false;
+            this.stateInited = CONST_FALSE;
             this.stateDebounceHandler = 0; //timeoutHandler
             this.stateWaiting = {};
 
-            this.haveOwnPropsChanged = true;
-            this.hasStoreStateChanged = true;
+            this.haveOwnPropsChanged = CONST_TRUE;
+            this.hasStoreStateChanged = CONST_TRUE;
         }
 
         _createClass(ComponentWrapper, [{
@@ -665,7 +672,7 @@ function connect(BaseComponent, StoreIns, mapStateToProps, options) {
             key: 'componentWillReceiveProps',
             value: function componentWillReceiveProps(nextProps) {
                 if (!pure || !(0, _utilsShallowEqual2['default'])(nextProps, this.props)) {
-                    this.haveOwnPropsChanged = true;
+                    this.haveOwnPropsChanged = CONST_TRUE;
                 }
             }
         }, {
@@ -678,7 +685,7 @@ function connect(BaseComponent, StoreIns, mapStateToProps, options) {
                 (0, _utilsFunctions.forEach)(storeInsArray, function (StoreIns0) {
                     StoreIns0.addChangeListener(that.handleAllStoreChange);
                 });
-                this.handleAllStoreChange();
+                that.handleAllStoreChange();
             }
         }, {
             key: 'componentWillUnmount',
@@ -693,7 +700,7 @@ function connect(BaseComponent, StoreIns, mapStateToProps, options) {
 
                 if (that.stateDebounceHandler) {
                     clearTimeout(that.stateDebounceHandler);
-                    that.stateDebounceHandler = null;
+                    that.stateDebounceHandler = CONST_NULL;
                 }
             }
 
@@ -701,18 +708,18 @@ function connect(BaseComponent, StoreIns, mapStateToProps, options) {
         }, {
             key: 'render',
             value: function render() {
-
-                if (!this.stateInited) {
-                    return null;
+                var that = this;
+                if (!that.stateInited) {
+                    return CONST_NULL;
                 }
 
-                this.haveOwnPropsChanged = false;
-                this.hasStoreStateChanged = false;
+                that.haveOwnPropsChanged = CONST_FALSE;
+                that.hasStoreStateChanged = CONST_FALSE;
 
-                var props = this.props || {};
+                var props = that.props || {};
 
                 if (mapStateToProps) {
-                    var stateParamForCalc = getStateParam(this.state, isArrayStoreIns, storeInsArrayLength);
+                    var stateParamForCalc = getStateParam(that.state, isArrayStoreIns, storeInsArrayLength);
                     props = (0, _utilsFunctions.extend)({}, props, mapStateToProps(stateParamForCalc, props));
                 }
 
