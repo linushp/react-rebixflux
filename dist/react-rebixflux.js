@@ -7,7 +7,7 @@
 		exports["ReactRebixflux"] = factory(require("react"));
 	else
 		root["ReactRebixflux"] = factory(root["React"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_10__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_11__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 11);
+/******/ 	return __webpack_require__(__webpack_require__.s = 12);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -467,6 +467,43 @@ function createStore(storeConfig) {
 "use strict";
 
 
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports["default"] = shallowEqual;
+
+function shallowEqual(objA, objB) {
+    if (objA === objB) {
+        return true;
+    }
+
+    var keysA = Object.keys(objA);
+    var keysB = Object.keys(objB);
+
+    if (keysA.length !== keysB.length) {
+        return false;
+    }
+
+    // Test for A's keys different from B.
+    var hasOwn = Object.prototype.hasOwnProperty;
+    for (var i = 0; i < keysA.length; i++) {
+        if (!hasOwn.call(objB, keysA[i]) || objA[keysA[i]] !== objB[keysA[i]]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+module.exports = exports["default"];
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
@@ -485,11 +522,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var _react = __webpack_require__(10);
+var _react = __webpack_require__(11);
 
 var _react2 = _interopRequireDefault(_react);
 
 var _utilsFunctions = __webpack_require__(0);
+
+var _utilsShallowEqual = __webpack_require__(6);
+
+var _utilsShallowEqual2 = _interopRequireDefault(_utilsShallowEqual);
 
 var _utilsActionEventBus = __webpack_require__(1);
 
@@ -512,6 +553,26 @@ function getStateParam(state, isArrayStoreIns, storeInsArrayLength) {
     return result;
 }
 
+function setStateDebounce(that, changeState) {
+
+    // var that = this;
+
+    if (that.stateDebounceHandler) {
+        clearTimeout(that.stateDebounceHandler);
+        that.stateDebounceHandler = null;
+    }
+
+    (0, _utilsFunctions.extend)(that.stateWaiting, changeState);
+
+    that.stateDebounceHandler = setTimeout(function () {
+        var stateWaiting = that.stateWaiting;
+        that.stateWaiting = {};
+        that.stateDebounceHandler = null;
+        that.hasStoreStateChanged = true;
+        that.setState(stateWaiting);
+    }, 1);
+}
+
 /**
  *
  * @param BaseComponent  必选
@@ -520,7 +581,16 @@ function getStateParam(state, isArrayStoreIns, storeInsArrayLength) {
  * @returns {ComponentWrapper}
  */
 
-function connect(BaseComponent, StoreIns, mapStateToProps) {
+function connect(BaseComponent, StoreIns, mapStateToProps, options) {
+
+    options = (0, _utilsFunctions.extend)({
+        pure: true,
+        debounce: true
+    }, options || {});
+
+    var _options = options;
+    var pure = _options.pure;
+    var debounce = _options.debounce;
 
     var isArrayStoreIns = (0, _utilsFunctions.isArray)(StoreIns);
     var storeInsArray = isArrayStoreIns ? StoreIns : [StoreIns];
@@ -568,14 +638,37 @@ function connect(BaseComponent, StoreIns, mapStateToProps) {
                 });
 
                 _this.stateInited = true;
-                _this.setState(stateMerge);
+
+                if (debounce) {
+                    //防抖
+                    setStateDebounce(_this, stateMerge);
+                } else {
+                    _this.setState(stateMerge);
+                }
             };
 
             this.state = {};
             this.stateInited = false;
+            this.stateDebounceHandler = 0; //timeoutHandler
+            this.stateWaiting = {};
+
+            this.haveOwnPropsChanged = true;
+            this.hasStoreStateChanged = true;
         }
 
         _createClass(ComponentWrapper, [{
+            key: 'shouldComponentUpdate',
+            value: function shouldComponentUpdate() {
+                return !pure || this.haveOwnPropsChanged || this.hasStoreStateChanged;
+            }
+        }, {
+            key: 'componentWillReceiveProps',
+            value: function componentWillReceiveProps(nextProps) {
+                if (!pure || !(0, _utilsShallowEqual2['default'])(nextProps, this.props)) {
+                    this.haveOwnPropsChanged = true;
+                }
+            }
+        }, {
             key: 'componentDidMount',
             value: function componentDidMount() {
                 var that = this;
@@ -597,6 +690,11 @@ function connect(BaseComponent, StoreIns, mapStateToProps) {
                 (0, _utilsFunctions.forEach)(storeInsArray, function (StoreIns0) {
                     StoreIns0.removeChangeListener(that.handleAllStoreChange);
                 });
+
+                if (that.stateDebounceHandler) {
+                    clearTimeout(that.stateDebounceHandler);
+                    that.stateDebounceHandler = null;
+                }
             }
 
             //View层也可以直接接收Command的消息.
@@ -607,6 +705,9 @@ function connect(BaseComponent, StoreIns, mapStateToProps) {
                 if (!this.stateInited) {
                     return null;
                 }
+
+                this.haveOwnPropsChanged = false;
+                this.hasStoreStateChanged = false;
 
                 var props = this.props || {};
 
@@ -626,7 +727,7 @@ function connect(BaseComponent, StoreIns, mapStateToProps) {
 module.exports = exports['default'];
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -645,7 +746,7 @@ var _utilsFunctions = __webpack_require__(0);
 
 var _utilsArrayUtils = __webpack_require__(3);
 
-var _utilsIsPromise = __webpack_require__(9);
+var _utilsIsPromise = __webpack_require__(10);
 
 var _utilsIsPromise2 = _interopRequireDefault(_utilsIsPromise);
 
@@ -716,7 +817,7 @@ function createCommand(commandName, func) {
 }
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -823,7 +924,7 @@ function createMergedStore(storeConfig) {
 }
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -841,13 +942,13 @@ function isPromise(p) {
 module.exports = exports['default'];
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_10__;
+module.exports = __WEBPACK_EXTERNAL_MODULE_11__;
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -863,13 +964,17 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 
 var _createStore = __webpack_require__(5);
 
-var _createMergedStore = __webpack_require__(8);
+var _createMergedStore = __webpack_require__(9);
 
-var _connect = __webpack_require__(6);
+var _connect = __webpack_require__(7);
 
 var _connect2 = _interopRequireDefault(_connect);
 
-var _createActions = __webpack_require__(7);
+var _utilsShallowEqual = __webpack_require__(6);
+
+var _utilsShallowEqual2 = _interopRequireDefault(_utilsShallowEqual);
+
+var _createActions = __webpack_require__(8);
 
 var _utilsEventBus = __webpack_require__(2);
 
@@ -899,9 +1004,9 @@ var exportObject = {
     createMergedStore: _createMergedStore.createMergedStore,
     connect: _connect2['default'],
 
+    shallowEqual: _utilsShallowEqual2['default'],
     EventBus: _utilsEventBus2['default'],
     ActionEventBus: _utilsActionEventBus2['default']
-
 };
 
 //把它用到的工具函数,也暴漏给外界。

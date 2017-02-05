@@ -1,5 +1,6 @@
 import React from 'react';
 import {extend,isArray,forEach} from './utils/functions';
+import shallowEqual from './utils/shallowEqual';
 import ActionEventBus,{CommandEvent} from './utils/ActionEventBus';
 import {toFirstCharUpper} from './utils/StringUtils';
 
@@ -19,6 +20,27 @@ function getStateParam(state, isArrayStoreIns, storeInsArrayLength) {
 }
 
 
+function setStateDebounce(that,changeState){
+
+    // var that = this;
+
+    if (that.stateDebounceHandler) {
+        clearTimeout(that.stateDebounceHandler);
+        that.stateDebounceHandler = null;
+    }
+
+    extend(that.stateWaiting, changeState);
+
+    that.stateDebounceHandler = setTimeout(()=> {
+        var stateWaiting = that.stateWaiting;
+        that.stateWaiting = {};
+        that.stateDebounceHandler = null;
+        that.hasStoreStateChanged = true;
+        that.setState(stateWaiting);
+    }, 1);
+
+}
+
 /**
  *
  * @param BaseComponent  必选
@@ -26,7 +48,14 @@ function getStateParam(state, isArrayStoreIns, storeInsArrayLength) {
  * @param mapStateToProps 可选
  * @returns {ComponentWrapper}
  */
-export default function connect(BaseComponent, StoreIns, mapStateToProps) {
+export default function connect(BaseComponent, StoreIns, mapStateToProps,options) {
+
+    options = extend({
+        pure:true,
+        debounce:true
+    },options||{});
+
+    var {pure,debounce} = options;
 
     var isArrayStoreIns = isArray(StoreIns);
     var storeInsArray = isArrayStoreIns ? StoreIns : [StoreIns];
@@ -37,6 +66,22 @@ export default function connect(BaseComponent, StoreIns, mapStateToProps) {
             super(props);
             this.state = {};
             this.stateInited = false;
+            this.stateDebounceHandler = 0; //timeoutHandler
+            this.stateWaiting = {};
+
+            this.haveOwnPropsChanged = true;
+            this.hasStoreStateChanged = true;
+        }
+
+        shouldComponentUpdate() {
+            return !pure || this.haveOwnPropsChanged || this.hasStoreStateChanged
+        }
+
+
+        componentWillReceiveProps(nextProps) {
+            if (!pure || !shallowEqual(nextProps, this.props)) {
+                this.haveOwnPropsChanged = true;
+            }
         }
 
         componentDidMount() {
@@ -59,6 +104,11 @@ export default function connect(BaseComponent, StoreIns, mapStateToProps) {
             forEach(storeInsArray, function (StoreIns0) {
                 StoreIns0.removeChangeListener(that.handleAllStoreChange);
             });
+
+            if(that.stateDebounceHandler){
+                clearTimeout(that.stateDebounceHandler);
+                that.stateDebounceHandler = null;
+            }
         }
 
 
@@ -91,15 +141,26 @@ export default function connect(BaseComponent, StoreIns, mapStateToProps) {
             });
 
             this.stateInited = true;
-            this.setState(stateMerge);
 
+            if(debounce){
+                //防抖
+                setStateDebounce(this, stateMerge)
+            }else {
+                this.setState(stateMerge);
+            }
+            
         };
+
+
 
         render() {
 
             if(!this.stateInited){
                 return null;
             }
+
+            this.haveOwnPropsChanged = false;
+            this.hasStoreStateChanged = false;
 
             var props = this.props || {};
 

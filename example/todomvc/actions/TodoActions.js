@@ -7,7 +7,7 @@ export default Rebixflux.createActions("todomvc",{
         return new Promise(function (resolve) {
             setTimeout(()=>{
                 resolve(newTitle);
-            },1000);
+            },0);
         })
     },
     toggleItem: function (todo) {

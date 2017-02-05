@@ -1,6 +1,7 @@
 import {createStore} from './createStore';
 import {createMergedStore} from './createMergedStore';
 import connect from './connect';
+import shallowEqual from './utils/shallowEqual';
 import {createCommand, createAction, createActions} from './createActions';
 import EventBus from './utils/EventBus';
 import ActionEventBus from './utils/ActionEventBus';
@@ -17,9 +18,9 @@ var exportObject = {
     createMergedStore: createMergedStore,
     connect: connect,
 
+    shallowEqual:shallowEqual,
     EventBus: EventBus,
     ActionEventBus: ActionEventBus
-
 };
 
 

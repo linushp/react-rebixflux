@@ -88,7 +88,8 @@ class TodoItem extends React.Component {
     }
 }
 
+export default TodoItem;
 
-export default Rebixflux.connect(TodoItem,TodoStore,function (state) {
-    return {};
-});
+// export default Rebixflux.connect(TodoItem,TodoStore,function (state) {
+//     return {};
+// });
