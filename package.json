@@ -24,9 +24,9 @@
   "author": "ubibi.cn",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/luanhaipeng/rebixflux/issues"
+    "url": "https://github.com/luanhaipeng/react-rebixflux/issues"
   },
-  "homepage": "https://github.com/luanhaipeng/rebixflux#readme",
+  "homepage": "https://github.com/luanhaipeng/react-rebixflux#readme",
   "devDependencies": {
     "autoprefixer": "^6.3.7",
     "babel-core": "^5.8.38",
