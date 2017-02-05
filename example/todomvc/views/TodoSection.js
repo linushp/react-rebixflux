@@ -58,6 +58,7 @@ class TodoSection extends React.Component {
 }
 
 export default Rebixflux.connect(TodoSection, TodoStore, function (state) {
+    console.log('TodoSection connect');
     return {
         viewTodoList:state.viewTodoList
     };

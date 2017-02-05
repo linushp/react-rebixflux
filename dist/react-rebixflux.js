@@ -86,6 +86,8 @@ return /******/ (function(modules) { // webpackBootstrap
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
+exports.isFunction = isFunction;
+exports.isString = isString;
 var keysFunc = Object.keys;
 
 var undefinedOnly = false;
@@ -113,11 +115,6 @@ exports.extend = extend;
 var isArray = Array.isArray;
 
 exports.isArray = isArray;
-var isString = function isString(obj) {
-    return typeof obj === 'string';
-};
-
-exports.isString = isString;
 var forEach = function forEach(obj, it) {
     if (isArray(obj)) {
         Array.prototype.forEach.call(obj, it);
@@ -130,7 +127,19 @@ var forEach = function forEach(obj, it) {
         }
     }
 };
+
 exports.forEach = forEach;
+function isType(x, type) {
+    return Object.prototype.toString.call(x) === '[object ' + type + ']';
+}
+
+function isFunction(x) {
+    return isType(x, 'Function');
+}
+
+function isString(x) {
+    return isType(x, 'String');
+}
 
 /***/ }),
 /* 1 */
@@ -514,7 +523,7 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
-exports['default'] = connect;
+exports.connect = connect;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -538,8 +547,8 @@ var _utilsActionEventBus2 = _interopRequireDefault(_utilsActionEventBus);
 
 var _utilsStringUtils = __webpack_require__(4);
 
+var storeShape = _react.PropTypes.object;
 var STATE_ITEM_NAME = 'state';
-
 var CONST_TRUE = true;
 var CONST_FALSE = false;
 var CONST_NULL = null;
@@ -580,7 +589,7 @@ function setStateDebounce(that, changeState) {
 /**
  *
  * @param BaseComponent  必选
- * @param StoreIns 可选  //TODO
+ * @param StoreIns 可选
  * @param mapStateToProps 可选
  * @returns {ComponentWrapper}
  */
@@ -591,24 +600,35 @@ function connect(BaseComponent, StoreIns, mapStateToProps, options) {
         pure: CONST_TRUE,
         debounce: CONST_FALSE
     }, options || {});
-
     var _options = options;
     var pure = _options.pure;
     var debounce = _options.debounce;
 
-    var isArrayStoreIns = (0, _utilsFunctions.isArray)(StoreIns);
-    var storeInsArray = isArrayStoreIns ? StoreIns : [StoreIns];
-    var storeInsArrayLength = storeInsArray.length;
+    var isArrayStoreIns = false;
+    var storeInsArray = [];
+    var storeInsArrayLength = 0;
+    var isConnectContext = false;
+    if ((0, _utilsFunctions.isFunction)(StoreIns)) {
+        isConnectContext = true;
+        mapStateToProps = StoreIns;
+        isArrayStoreIns = false;
+        storeInsArray = [];
+        storeInsArrayLength = 0;
+    } else {
+        isArrayStoreIns = (0, _utilsFunctions.isArray)(StoreIns);
+        storeInsArray = isArrayStoreIns ? StoreIns : [StoreIns];
+        storeInsArrayLength = storeInsArray.length;
+    }
 
-    return (function (_React$Component) {
-        _inherits(ComponentWrapper, _React$Component);
+    var StateProviderComponent = (function (_React$Component) {
+        _inherits(StateProviderComponent, _React$Component);
 
-        function ComponentWrapper(props) {
+        function StateProviderComponent(props, context) {
             var _this = this;
 
-            _classCallCheck(this, ComponentWrapper);
+            _classCallCheck(this, StateProviderComponent);
 
-            _get(Object.getPrototypeOf(ComponentWrapper.prototype), 'constructor', this).call(this, props);
+            _get(Object.getPrototypeOf(StateProviderComponent.prototype), 'constructor', this).call(this, props, context);
 
             this.handleCommand = function (_ref) {
                 var actionName = _ref.actionName;
@@ -663,10 +683,13 @@ function connect(BaseComponent, StoreIns, mapStateToProps, options) {
             this.hasStoreStateChanged = CONST_TRUE;
         }
 
-        _createClass(ComponentWrapper, [{
+        _createClass(StateProviderComponent, [{
             key: 'shouldComponentUpdate',
             value: function shouldComponentUpdate() {
-                return !pure || this.haveOwnPropsChanged || this.hasStoreStateChanged;
+                if (!isConnectContext) {
+                    return !pure || this.haveOwnPropsChanged || this.hasStoreStateChanged;
+                }
+                return true;
             }
         }, {
             key: 'componentWillReceiveProps',
@@ -682,10 +705,12 @@ function connect(BaseComponent, StoreIns, mapStateToProps, options) {
 
                 _utilsActionEventBus2['default'].on(_utilsActionEventBus.CommandEvent, that.handleCommand);
 
-                (0, _utilsFunctions.forEach)(storeInsArray, function (StoreIns0) {
-                    StoreIns0.addChangeListener(that.handleAllStoreChange);
-                });
-                that.handleAllStoreChange();
+                if (!isConnectContext) {
+                    (0, _utilsFunctions.forEach)(storeInsArray, function (StoreIns0) {
+                        StoreIns0.addChangeListener(that.handleAllStoreChange);
+                    });
+                    that.handleAllStoreChange();
+                }
             }
         }, {
             key: 'componentWillUnmount',
@@ -694,9 +719,11 @@ function connect(BaseComponent, StoreIns, mapStateToProps, options) {
 
                 _utilsActionEventBus2['default'].off(_utilsActionEventBus.CommandEvent, that.handleCommand);
 
-                (0, _utilsFunctions.forEach)(storeInsArray, function (StoreIns0) {
-                    StoreIns0.removeChangeListener(that.handleAllStoreChange);
-                });
+                if (!isConnectContext) {
+                    (0, _utilsFunctions.forEach)(storeInsArray, function (StoreIns0) {
+                        StoreIns0.removeChangeListener(that.handleAllStoreChange);
+                    });
+                }
 
                 if (that.stateDebounceHandler) {
                     clearTimeout(that.stateDebounceHandler);
@@ -709,7 +736,7 @@ function connect(BaseComponent, StoreIns, mapStateToProps, options) {
             key: 'render',
             value: function render() {
                 var that = this;
-                if (!that.stateInited) {
+                if (!that.stateInited && !isConnectContext) {
                     return CONST_NULL;
                 }
 
@@ -719,19 +746,81 @@ function connect(BaseComponent, StoreIns, mapStateToProps, options) {
                 var props = that.props || {};
 
                 if (mapStateToProps) {
-                    var stateParamForCalc = getStateParam(that.state, isArrayStoreIns, storeInsArrayLength);
-                    props = (0, _utilsFunctions.extend)({}, props, mapStateToProps(stateParamForCalc, props));
+
+                    if (!isConnectContext) {
+
+                        var stateParamForCalc = getStateParam(that.state, isArrayStoreIns, storeInsArrayLength);
+                        props = (0, _utilsFunctions.extend)({}, props, mapStateToProps(stateParamForCalc, props));
+                    } else {
+
+                        var context = that.context || {};
+                        var contextState = context.rebixfluxState || {};
+                        props = (0, _utilsFunctions.extend)({}, props, mapStateToProps(contextState, props));
+                    }
                 }
 
                 return _react2['default'].createElement(BaseComponent, _extends({}, props, { ref: 'BaseComponentIns' }));
             }
+        }, {
+            key: 'getChildContext',
+            value: function getChildContext() {
+                var stateParamForCalc = getStateParam(this.state, isArrayStoreIns, storeInsArrayLength);
+                return { rebixfluxState: stateParamForCalc };
+            }
         }]);
 
-        return ComponentWrapper;
+        return StateProviderComponent;
     })(_react2['default'].Component);
+
+    StateProviderComponent.childContextTypes = {
+        rebixfluxState: storeShape
+    };
+
+    StateProviderComponent.contextTypes = {
+        rebixfluxState: storeShape
+    };
+
+    StateProviderComponent.propTypes = {
+        rebixfluxState: storeShape
+    };
+
+    return StateProviderComponent;
 }
 
-module.exports = exports['default'];
+// export function connectContext(BaseComponent, mapStateToProps) {
+//     class  ContextComponent extends React.Component {
+//
+//         render() {
+//             var that = this;
+//             var props = that.props || {};
+//
+//             if (mapStateToProps) {
+//                 var context = that.context || {};
+//                 var contextState = context.rebixfluxState || {};
+//                 props = extend({}, props, mapStateToProps(contextState, props));
+//             }
+//
+//             return (<BaseComponent {...props} />);
+//         }
+//     }
+//
+//     ContextComponent.contextTypes = {
+//         rebixfluxState: storeShape
+//     };
+//
+//     ContextComponent.propTypes = {
+//         rebixfluxState: storeShape
+//     };
+//
+//     return ContextComponent;
+// }
+//
+// export function connect(BaseComponent, p1, p2, p3) {
+//     if (isFunction(p1)) {
+//         return connectContext(BaseComponent, p1);
+//     }
+//     return connectStore(BaseComponent, p1, p2, p3)
+// }
 
 /***/ }),
 /* 8 */
@@ -973,10 +1062,6 @@ var _createStore = __webpack_require__(5);
 
 var _createMergedStore = __webpack_require__(9);
 
-var _connect = __webpack_require__(7);
-
-var _connect2 = _interopRequireDefault(_connect);
-
 var _utilsShallowEqual = __webpack_require__(6);
 
 var _utilsShallowEqual2 = _interopRequireDefault(_utilsShallowEqual);
@@ -990,6 +1075,10 @@ var _utilsEventBus2 = _interopRequireDefault(_utilsEventBus);
 var _utilsActionEventBus = __webpack_require__(1);
 
 var _utilsActionEventBus2 = _interopRequireDefault(_utilsActionEventBus);
+
+var _connect = __webpack_require__(7);
+
+var connectFunctions = _interopRequireWildcard(_connect);
 
 var _utilsFunctions = __webpack_require__(0);
 
@@ -1009,7 +1098,6 @@ var exportObject = {
     createActions: _createActions.createActions,
     createStore: _createStore.createStore,
     createMergedStore: _createMergedStore.createMergedStore,
-    connect: _connect2['default'],
 
     shallowEqual: _utilsShallowEqual2['default'],
     EventBus: _utilsEventBus2['default'],
@@ -1018,7 +1106,7 @@ var exportObject = {
 
 //把它用到的工具函数,也暴漏给外界。
 var extend = functions.extend;
-extend(exportObject, functions, StringUtils, ArrayUtils);
+extend(exportObject, functions, StringUtils, ArrayUtils, connectFunctions);
 
 exports['default'] = exportObject;
 module.exports = exports['default'];

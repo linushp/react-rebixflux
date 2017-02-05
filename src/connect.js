@@ -1,11 +1,11 @@
-import React from 'react';
-import {extend, isArray, forEach} from './utils/functions';
+import React, {PropTypes}from 'react';
+import {extend, isArray, isFunction, forEach} from './utils/functions';
 import shallowEqual from './utils/shallowEqual';
 import ActionEventBus, {CommandEvent} from './utils/ActionEventBus';
 import {toFirstCharUpper} from './utils/StringUtils';
 
+const storeShape = PropTypes.object;
 const STATE_ITEM_NAME = 'state';
-
 const CONST_TRUE = true;
 const CONST_FALSE = false;
 const CONST_NULL = null;
@@ -48,26 +48,41 @@ function setStateDebounce(that, changeState) {
 /**
  *
  * @param BaseComponent  必选
- * @param StoreIns 可选  //TODO
+ * @param StoreIns 可选
  * @param mapStateToProps 可选
  * @returns {ComponentWrapper}
  */
-export default function connect(BaseComponent, StoreIns, mapStateToProps, options) {
+export function connect(BaseComponent, StoreIns, mapStateToProps, options) {
+
 
     options = extend({
         pure: CONST_TRUE,
         debounce: CONST_FALSE
     }, options || {});
-
     var {pure, debounce} = options;
 
-    var isArrayStoreIns = isArray(StoreIns);
-    var storeInsArray = isArrayStoreIns ? StoreIns : [StoreIns];
-    var storeInsArrayLength = storeInsArray.length;
 
-    return class ComponentWrapper extends React.Component {
-        constructor(props) {
-            super(props);
+    var isArrayStoreIns = false;
+    var storeInsArray = [];
+    var storeInsArrayLength = 0;
+    var isConnectContext = false;
+    if (isFunction(StoreIns)) {
+        isConnectContext = true;
+        mapStateToProps = StoreIns;
+        isArrayStoreIns = false;
+        storeInsArray = [];
+        storeInsArrayLength = 0;
+    } else {
+        isArrayStoreIns = isArray(StoreIns);
+        storeInsArray = isArrayStoreIns ? StoreIns : [StoreIns];
+        storeInsArrayLength = storeInsArray.length;
+    }
+
+    class StateProviderComponent extends React.Component {
+
+
+        constructor(props, context) {
+            super(props, context);
             this.state = {};
             this.stateInited = CONST_FALSE;
             this.stateDebounceHandler = 0; //timeoutHandler
@@ -78,7 +93,10 @@ export default function connect(BaseComponent, StoreIns, mapStateToProps, option
         }
 
         shouldComponentUpdate() {
-            return !pure || this.haveOwnPropsChanged || this.hasStoreStateChanged
+            if(!isConnectContext){
+                return !pure || this.haveOwnPropsChanged || this.hasStoreStateChanged
+            }
+            return true;
         }
 
 
@@ -93,11 +111,12 @@ export default function connect(BaseComponent, StoreIns, mapStateToProps, option
 
             ActionEventBus.on(CommandEvent, that.handleCommand);
 
-            forEach(storeInsArray, function (StoreIns0) {
-                StoreIns0.addChangeListener(that.handleAllStoreChange);
-            });
-            that.handleAllStoreChange();
-
+            if (!isConnectContext) {
+                forEach(storeInsArray, function (StoreIns0) {
+                    StoreIns0.addChangeListener(that.handleAllStoreChange);
+                });
+                that.handleAllStoreChange();
+            }
         }
 
         componentWillUnmount() {
@@ -105,9 +124,11 @@ export default function connect(BaseComponent, StoreIns, mapStateToProps, option
 
             ActionEventBus.off(CommandEvent, that.handleCommand);
 
-            forEach(storeInsArray, function (StoreIns0) {
-                StoreIns0.removeChangeListener(that.handleAllStoreChange);
-            });
+            if (!isConnectContext) {
+                forEach(storeInsArray, function (StoreIns0) {
+                    StoreIns0.removeChangeListener(that.handleAllStoreChange);
+                });
+            }
 
             if (that.stateDebounceHandler) {
                 clearTimeout(that.stateDebounceHandler);
@@ -161,7 +182,7 @@ export default function connect(BaseComponent, StoreIns, mapStateToProps, option
 
         render() {
             var that = this;
-            if (!that.stateInited) {
+            if (!that.stateInited && !isConnectContext) {
                 return CONST_NULL;
             }
 
@@ -171,12 +192,79 @@ export default function connect(BaseComponent, StoreIns, mapStateToProps, option
             var props = that.props || {};
 
             if (mapStateToProps) {
-                var stateParamForCalc = getStateParam(that.state, isArrayStoreIns, storeInsArrayLength);
-                props = extend({}, props, mapStateToProps(stateParamForCalc, props));
+
+                if (!isConnectContext){
+
+                    var stateParamForCalc = getStateParam(that.state, isArrayStoreIns, storeInsArrayLength);
+                    props = extend({}, props, mapStateToProps(stateParamForCalc, props));
+
+                }else {
+
+                    var context = that.context || {};
+                    var contextState = context.rebixfluxState || {};
+                    props = extend({}, props, mapStateToProps(contextState, props));
+
+                }
+
             }
 
             return (<BaseComponent {...props} ref="BaseComponentIns"/>);
         }
 
+        getChildContext() {
+            var stateParamForCalc = getStateParam(this.state, isArrayStoreIns, storeInsArrayLength);
+            return {rebixfluxState: stateParamForCalc}
+        }
+
     }
+
+    StateProviderComponent.childContextTypes = {
+        rebixfluxState: storeShape
+    };
+
+    StateProviderComponent.contextTypes = {
+        rebixfluxState: storeShape
+    };
+
+    StateProviderComponent.propTypes = {
+        rebixfluxState: storeShape
+    };
+
+    return StateProviderComponent;
 }
+
+
+// export function connectContext(BaseComponent, mapStateToProps) {
+//     class  ContextComponent extends React.Component {
+//
+//         render() {
+//             var that = this;
+//             var props = that.props || {};
+//
+//             if (mapStateToProps) {
+//                 var context = that.context || {};
+//                 var contextState = context.rebixfluxState || {};
+//                 props = extend({}, props, mapStateToProps(contextState, props));
+//             }
+//
+//             return (<BaseComponent {...props} />);
+//         }
+//     }
+//
+//     ContextComponent.contextTypes = {
+//         rebixfluxState: storeShape
+//     };
+//
+//     ContextComponent.propTypes = {
+//         rebixfluxState: storeShape
+//     };
+//
+//     return ContextComponent;
+// }
+//
+// export function connect(BaseComponent, p1, p2, p3) {
+//     if (isFunction(p1)) {
+//         return connectContext(BaseComponent, p1);
+//     }
+//     return connectStore(BaseComponent, p1, p2, p3)
+// }
