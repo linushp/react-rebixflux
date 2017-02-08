@@ -543,6 +543,8 @@ exports.connect = connect;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
@@ -563,12 +565,14 @@ var _utilsActionEventBus2 = _interopRequireDefault(_utilsActionEventBus);
 
 var _utilsStringUtils = __webpack_require__(4);
 
-var storeShape = _react.PropTypes.object;
 var propTypeAny = _react.PropTypes.any;
+var storeShape = propTypeAny;
+
 var STATE_ITEM_NAME = 'state';
 var CONST_TRUE = true;
 var CONST_FALSE = false;
 var CONST_NULL = null;
+var DEFAULT_STORE_CONTXT_NAME = 'RebixFluxContextState';
 
 function getStateParam(state, isArrayStoreIns, storeInsArrayLength) {
 
@@ -625,6 +629,7 @@ function setStateDebounce(that, changeState) {
  */
 
 function connect(BaseComponent, p1, p2, p3) {
+    var _extend;
 
     var StoreIns;
     var mapStateToProps;
@@ -659,12 +664,16 @@ function connect(BaseComponent, p1, p2, p3) {
     options = (0, _utilsFunctions.extend)({
         pure: CONST_TRUE,
         debounce: CONST_FALSE,
-        contextTypes: {}
+        contextTypes: {},
+        provideStoreContextName: DEFAULT_STORE_CONTXT_NAME,
+        requireStoreContextName: DEFAULT_STORE_CONTXT_NAME
     }, options || {});
     var _options = options;
     var pure = _options.pure;
     var debounce = _options.debounce;
     var contextTypes = _options.contextTypes;
+    var provideStoreContextName = _options.provideStoreContextName;
+    var requireStoreContextName = _options.requireStoreContextName;
 
     var StateProviderComponent = (function (_React$Component) {
         _inherits(StateProviderComponent, _React$Component);
@@ -676,11 +685,11 @@ function connect(BaseComponent, p1, p2, p3) {
 
             _get(Object.getPrototypeOf(StateProviderComponent.prototype), 'constructor', this).call(this, props, context);
 
-            this.handleCommand = function (_ref) {
-                var actionName = _ref.actionName;
-                var actionGroup = _ref.actionGroup;
-                var payload = _ref.payload;
-                var status = _ref.status;
+            this.handleCommand = function (_ref2) {
+                var actionName = _ref2.actionName;
+                var actionGroup = _ref2.actionGroup;
+                var payload = _ref2.payload;
+                var status = _ref2.status;
 
                 var commandHandlerName = "onCmd" + (0, _utilsStringUtils.toFirstCharUpper)(actionName); // onCmdXXX
                 var componentIns = _this.refs['BaseComponentIns'];
@@ -801,7 +810,7 @@ function connect(BaseComponent, p1, p2, p3) {
                         props = (0, _utilsFunctions.extend)({}, props, mapStateToProps(stateParamForCalc, props, context, that));
                     } else {
 
-                        var contextState = context.rebixfluxState || {};
+                        var contextState = context[requireStoreContextName] || {};
                         props = (0, _utilsFunctions.extend)({}, props, mapStateToProps(contextState, props, context, that));
                     }
                 }
@@ -812,21 +821,16 @@ function connect(BaseComponent, p1, p2, p3) {
             key: 'getChildContext',
             value: function getChildContext() {
                 var stateParamForCalc = getStateParam(this.state, isArrayStoreIns, storeInsArrayLength);
-                return { rebixfluxState: stateParamForCalc };
+                return _defineProperty({}, provideStoreContextName, stateParamForCalc);
             }
         }]);
 
         return StateProviderComponent;
     })(_react2['default'].Component);
 
-    StateProviderComponent.childContextTypes = {
-        rebixfluxState: storeShape
-    };
+    StateProviderComponent.childContextTypes = _defineProperty({}, provideStoreContextName, storeShape);
 
-    StateProviderComponent.contextTypes = (0, _utilsFunctions.extend)({
-        rebixfluxState: storeShape,
-        router: propTypeAny
-    }, toContextTypes(contextTypes));
+    StateProviderComponent.contextTypes = (0, _utilsFunctions.extend)((_extend = {}, _defineProperty(_extend, requireStoreContextName, storeShape), _defineProperty(_extend, 'router', propTypeAny), _extend), toContextTypes(contextTypes));
 
     return StateProviderComponent;
 }

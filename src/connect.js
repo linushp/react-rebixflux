@@ -4,12 +4,15 @@ import shallowEqual from './utils/shallowEqual';
 import ActionEventBus, {CommandEvent} from './utils/ActionEventBus';
 import {toFirstCharUpper} from './utils/StringUtils';
 
-const storeShape = PropTypes.object;
+
 const propTypeAny = PropTypes.any;
+const storeShape = propTypeAny;
+
 const STATE_ITEM_NAME = 'state';
 const CONST_TRUE = true;
 const CONST_FALSE = false;
 const CONST_NULL = null;
+const DEFAULT_STORE_CONTXT_NAME = 'RebixFluxContextState';
 
 function getStateParam(state, isArrayStoreIns, storeInsArrayLength) {
 
@@ -102,9 +105,11 @@ export function connect(BaseComponent, p1, p2, p3) {
     options = extend({
         pure: CONST_TRUE,
         debounce: CONST_FALSE,
-        contextTypes: {}
+        contextTypes: {},
+        provideStoreContextName: DEFAULT_STORE_CONTXT_NAME,
+        requireStoreContextName: DEFAULT_STORE_CONTXT_NAME
     }, options || {});
-    var {pure, debounce, contextTypes} = options;
+    var {pure, debounce, contextTypes, provideStoreContextName, requireStoreContextName} = options;
 
 
     class StateProviderComponent extends React.Component {
@@ -231,7 +236,7 @@ export function connect(BaseComponent, p1, p2, p3) {
 
                 } else {
 
-                    var contextState = context.rebixfluxState || {};
+                    var contextState = context[requireStoreContextName] || {};
                     props = extend({}, props, mapStateToProps(contextState, props, context, that));
 
                 }
@@ -243,17 +248,17 @@ export function connect(BaseComponent, p1, p2, p3) {
 
         getChildContext() {
             var stateParamForCalc = getStateParam(this.state, isArrayStoreIns, storeInsArrayLength);
-            return {rebixfluxState: stateParamForCalc}
+            return {[provideStoreContextName]: stateParamForCalc}
         }
 
     }
 
     StateProviderComponent.childContextTypes = {
-        rebixfluxState: storeShape
+        [provideStoreContextName]: storeShape
     };
 
     StateProviderComponent.contextTypes = extend({
-        rebixfluxState: storeShape,
+        [requireStoreContextName]: storeShape,
         router: propTypeAny
     }, toContextTypes(contextTypes));
 

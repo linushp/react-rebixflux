@@ -90,7 +90,7 @@ class TodoItem extends React.Component {
 
 // export default TodoItem;
 
-export default Rebixflux.connect(TodoItem,function (state,props ){
-    console.log('TodoItem connect',state,props);
+export default Rebixflux.connect(TodoItem,function (state,props,context){
+    console.log('TodoItem connect',state,props,context);
     return {};
-});
+},{contextTypes:['afsda','sdfsadf','sdfsdfa','sdfsdafasd','RootStoreContextName']});
