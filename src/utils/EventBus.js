@@ -11,8 +11,9 @@ function setListeners(eventBusInstance, listeners) {
 
 export default class EventBus {
 
-    constructor(name) {
+    constructor(name,listenerWrapper) {
         this.name = name;
+        this.listenerWrapper = listenerWrapper;
         setListeners(this, []);
     }
 
@@ -39,11 +40,20 @@ export default class EventBus {
     }
 
     emit(eventName, m1, m2, m3, m4, m5) {
-        var listeners = getListeners(this);
+        var that = this;
+        var listeners = getListeners(that);
+        var listenerWrapper = that.listenerWrapper;
+
         for (var i = 0; i < listeners.length; i++) {
             var m = listeners[i];
             if (m.eventName === eventName && m.listener) {
-                m.listener(m1, m2, m3, m4, m5);
+
+                if(listenerWrapper){
+                    listenerWrapper(m.listener,m1, m2, m3, m4, m5);
+                }else {
+                    m.listener(m1, m2, m3, m4, m5);
+                }
+
             }
         }
     }
