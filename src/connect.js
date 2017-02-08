@@ -5,6 +5,7 @@ import ActionEventBus, {CommandEvent} from './utils/ActionEventBus';
 import {toFirstCharUpper} from './utils/StringUtils';
 
 const storeShape = PropTypes.object;
+const propTypeAny = PropTypes.any;
 const STATE_ITEM_NAME = 'state';
 const CONST_TRUE = true;
 const CONST_FALSE = false;
@@ -21,6 +22,19 @@ function getStateParam(state, isArrayStoreIns, storeInsArrayLength) {
         result.push(state[STATE_ITEM_NAME + i]);
     }
     return result;
+}
+
+function toContextTypes(contextTypes) {
+
+    if (isArray(contextTypes) && contextTypes.length > 0) {
+        var result = {};
+        forEach(contextTypes, function (contextTypeName) {
+            result['' + contextTypeName] = propTypeAny;
+        });
+        return result;
+    }
+
+    return contextTypes || {};
 }
 
 
@@ -52,31 +66,46 @@ function setStateDebounce(that, changeState) {
  * @param mapStateToProps 可选
  * @returns {ComponentWrapper}
  */
-export function connect(BaseComponent, StoreIns, mapStateToProps, options) {
+export function connect(BaseComponent, p1, p2, p3) {
 
-
-    options = extend({
-        pure: CONST_TRUE,
-        debounce: CONST_FALSE
-    }, options || {});
-    var {pure, debounce} = options;
-
+    var StoreIns;
+    var mapStateToProps;
+    var options;
 
     var isArrayStoreIns = false;
     var storeInsArray = [];
     var storeInsArrayLength = 0;
-    var isConnectContext = false;
-    if (isFunction(StoreIns)) {
-        isConnectContext = true;
-        mapStateToProps = StoreIns;
+    var isNoStoreParam = false; //标记是否省略了StoreIns参数
+
+    //省略第StoreIns参数
+    if (isFunction(p1)) {
+
+        mapStateToProps = p1;
+        options = p2;
+
+        isNoStoreParam = true;
         isArrayStoreIns = false;
         storeInsArray = [];
         storeInsArrayLength = 0;
     } else {
+
+        StoreIns = p1;
+        mapStateToProps = p2;
+        options = p3;
+
         isArrayStoreIns = isArray(StoreIns);
         storeInsArray = isArrayStoreIns ? StoreIns : [StoreIns];
         storeInsArrayLength = storeInsArray.length;
     }
+
+
+    options = extend({
+        pure: CONST_TRUE,
+        debounce: CONST_FALSE,
+        contextTypes: {}
+    }, options || {});
+    var {pure, debounce, contextTypes} = options;
+
 
     class StateProviderComponent extends React.Component {
 
@@ -93,7 +122,7 @@ export function connect(BaseComponent, StoreIns, mapStateToProps, options) {
         }
 
         shouldComponentUpdate() {
-            if(!isConnectContext){
+            if (!isNoStoreParam) {
                 return !pure || this.haveOwnPropsChanged || this.hasStoreStateChanged
             }
             return true;
@@ -111,7 +140,7 @@ export function connect(BaseComponent, StoreIns, mapStateToProps, options) {
 
             ActionEventBus.on(CommandEvent, that.handleCommand);
 
-            if (!isConnectContext) {
+            if (!isNoStoreParam) {
                 forEach(storeInsArray, function (StoreIns0) {
                     StoreIns0.addChangeListener(that.handleAllStoreChange);
                 });
@@ -124,7 +153,7 @@ export function connect(BaseComponent, StoreIns, mapStateToProps, options) {
 
             ActionEventBus.off(CommandEvent, that.handleCommand);
 
-            if (!isConnectContext) {
+            if (!isNoStoreParam) {
                 forEach(storeInsArray, function (StoreIns0) {
                     StoreIns0.removeChangeListener(that.handleAllStoreChange);
                 });
@@ -182,7 +211,7 @@ export function connect(BaseComponent, StoreIns, mapStateToProps, options) {
 
         render() {
             var that = this;
-            if (!that.stateInited && !isConnectContext) {
+            if (!that.stateInited && !isNoStoreParam) {
                 return CONST_NULL;
             }
 
@@ -193,16 +222,17 @@ export function connect(BaseComponent, StoreIns, mapStateToProps, options) {
 
             if (mapStateToProps) {
 
-                if (!isConnectContext){
+                var context = that.context || {};
+
+                if (!isNoStoreParam) {
 
                     var stateParamForCalc = getStateParam(that.state, isArrayStoreIns, storeInsArrayLength);
-                    props = extend({}, props, mapStateToProps(stateParamForCalc, props));
+                    props = extend({}, props, mapStateToProps(stateParamForCalc, props, context, that));
 
-                }else {
+                } else {
 
-                    var context = that.context || {};
                     var contextState = context.rebixfluxState || {};
-                    props = extend({}, props, mapStateToProps(contextState, props));
+                    props = extend({}, props, mapStateToProps(contextState, props, context, that));
 
                 }
 
@@ -222,13 +252,10 @@ export function connect(BaseComponent, StoreIns, mapStateToProps, options) {
         rebixfluxState: storeShape
     };
 
-    StateProviderComponent.contextTypes = {
-        rebixfluxState: storeShape
-    };
-
-    StateProviderComponent.propTypes = {
-        rebixfluxState: storeShape
-    };
+    StateProviderComponent.contextTypes = extend({
+        rebixfluxState: storeShape,
+        router: propTypeAny
+    }, toContextTypes(contextTypes));
 
     return StateProviderComponent;
 }
