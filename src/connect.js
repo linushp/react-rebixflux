@@ -12,7 +12,7 @@ const STATE_ITEM_NAME = 'state';
 const CONST_TRUE = true;
 const CONST_FALSE = false;
 const CONST_NULL = null;
-const DEFAULT_STORE_CONTXT_NAME = 'RebixFluxContextState';
+const DEFAULT_STORE_CONTEXT_NAME = 'RebixFluxContextState';
 
 function getStateParam(state, isArrayStoreIns, storeInsArrayLength) {
 
@@ -106,10 +106,10 @@ export function connect(BaseComponent, p1, p2, p3) {
         pure: CONST_TRUE,
         debounce: CONST_FALSE,
         contextTypes: {},
-        provideStoreContextName: DEFAULT_STORE_CONTXT_NAME,
-        requireStoreContextName: DEFAULT_STORE_CONTXT_NAME
+        exposeStore: DEFAULT_STORE_CONTEXT_NAME,
+        requireStore: DEFAULT_STORE_CONTEXT_NAME
     }, options || {});
-    var {pure, debounce, contextTypes, provideStoreContextName, requireStoreContextName} = options;
+    var {pure, debounce, contextTypes, exposeStore, requireStore} = options;
 
 
     class StateProviderComponent extends React.Component {
@@ -236,7 +236,7 @@ export function connect(BaseComponent, p1, p2, p3) {
 
                 } else {
 
-                    var contextState = context[requireStoreContextName] || {};
+                    var contextState = context[requireStore] || {};
                     props = extend({}, props, mapStateToProps(contextState, props, context, that));
 
                 }
@@ -248,17 +248,17 @@ export function connect(BaseComponent, p1, p2, p3) {
 
         getChildContext() {
             var stateParamForCalc = getStateParam(this.state, isArrayStoreIns, storeInsArrayLength);
-            return {[provideStoreContextName]: stateParamForCalc}
+            return {[exposeStore]: stateParamForCalc}
         }
 
     }
 
     StateProviderComponent.childContextTypes = {
-        [provideStoreContextName]: storeShape
+        [exposeStore]: storeShape
     };
 
     StateProviderComponent.contextTypes = extend({
-        [requireStoreContextName]: storeShape,
+        [requireStore]: storeShape,
         router: propTypeAny
     }, toContextTypes(contextTypes));
 

@@ -24,4 +24,4 @@ export default Rebixflux.connect(TodoApp, [TodoStore], function (state) {
     return {
         viewTodoList:state.viewTodoList
     };
-},{provideStoreContextName:'RootStoreContextName'});
+},{exposeStore:'RootStoreContextName'});

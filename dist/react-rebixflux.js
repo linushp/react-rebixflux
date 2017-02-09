@@ -572,7 +572,7 @@ var STATE_ITEM_NAME = 'state';
 var CONST_TRUE = true;
 var CONST_FALSE = false;
 var CONST_NULL = null;
-var DEFAULT_STORE_CONTXT_NAME = 'RebixFluxContextState';
+var DEFAULT_STORE_CONTEXT_NAME = 'RebixFluxContextState';
 
 function getStateParam(state, isArrayStoreIns, storeInsArrayLength) {
 
@@ -665,15 +665,15 @@ function connect(BaseComponent, p1, p2, p3) {
         pure: CONST_TRUE,
         debounce: CONST_FALSE,
         contextTypes: {},
-        provideStoreContextName: DEFAULT_STORE_CONTXT_NAME,
-        requireStoreContextName: DEFAULT_STORE_CONTXT_NAME
+        exposeStore: DEFAULT_STORE_CONTEXT_NAME,
+        requireStore: DEFAULT_STORE_CONTEXT_NAME
     }, options || {});
     var _options = options;
     var pure = _options.pure;
     var debounce = _options.debounce;
     var contextTypes = _options.contextTypes;
-    var provideStoreContextName = _options.provideStoreContextName;
-    var requireStoreContextName = _options.requireStoreContextName;
+    var exposeStore = _options.exposeStore;
+    var requireStore = _options.requireStore;
 
     var StateProviderComponent = (function (_React$Component) {
         _inherits(StateProviderComponent, _React$Component);
@@ -810,7 +810,7 @@ function connect(BaseComponent, p1, p2, p3) {
                         props = (0, _utilsFunctions.extend)({}, props, mapStateToProps(stateParamForCalc, props, context, that));
                     } else {
 
-                        var contextState = context[requireStoreContextName] || {};
+                        var contextState = context[requireStore] || {};
                         props = (0, _utilsFunctions.extend)({}, props, mapStateToProps(contextState, props, context, that));
                     }
                 }
@@ -821,16 +821,16 @@ function connect(BaseComponent, p1, p2, p3) {
             key: 'getChildContext',
             value: function getChildContext() {
                 var stateParamForCalc = getStateParam(this.state, isArrayStoreIns, storeInsArrayLength);
-                return _defineProperty({}, provideStoreContextName, stateParamForCalc);
+                return _defineProperty({}, exposeStore, stateParamForCalc);
             }
         }]);
 
         return StateProviderComponent;
     })(_react2['default'].Component);
 
-    StateProviderComponent.childContextTypes = _defineProperty({}, provideStoreContextName, storeShape);
+    StateProviderComponent.childContextTypes = _defineProperty({}, exposeStore, storeShape);
 
-    StateProviderComponent.contextTypes = (0, _utilsFunctions.extend)((_extend = {}, _defineProperty(_extend, requireStoreContextName, storeShape), _defineProperty(_extend, 'router', propTypeAny), _extend), toContextTypes(contextTypes));
+    StateProviderComponent.contextTypes = (0, _utilsFunctions.extend)((_extend = {}, _defineProperty(_extend, requireStore, storeShape), _defineProperty(_extend, 'router', propTypeAny), _extend), toContextTypes(contextTypes));
 
     return StateProviderComponent;
 }
