@@ -223,24 +223,22 @@ export function connect(BaseComponent, p1, p2, p3) {
             that.haveOwnPropsChanged = CONST_FALSE;
             that.hasStoreStateChanged = CONST_FALSE;
 
-            var props = that.props || {};
+            var props = extend({}, that.props || {});
 
             if (mapStateToProps) {
 
                 var context = that.context || {};
+                var connectState = that.state;
 
                 if (!isNoStoreParam) {
 
-                    var stateParamForCalc = getStateParam(that.state, isArrayStoreIns, storeInsArrayLength);
-                    props = extend({}, props, mapStateToProps(stateParamForCalc, props, context, that));
+                    var stateParamForCalc = getStateParam(connectState, isArrayStoreIns, storeInsArrayLength);
+                    props = extend(props, mapStateToProps(stateParamForCalc, props, context, connectState, that));
 
                 } else {
-
                     var contextState = context[requireStore] || {};
-                    props = extend({}, props, mapStateToProps(contextState, props, context, that));
-
+                    props = extend(props, mapStateToProps(contextState, props, context, connectState, that));
                 }
-
             }
 
             return (<BaseComponent {...props} ref="BaseComponentIns"/>);
