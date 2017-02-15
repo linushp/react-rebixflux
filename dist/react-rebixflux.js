@@ -402,8 +402,9 @@ function createGetterFunction(getterDef, that) {
         var args0 = (0, _utilsArrayUtils.toArray)(arguments);
         //每次执行,都是获取最新的state
         var state = that.$$state;
-        var args = [state].concat(args0);
-        return getterDef.apply({}, args);
+        var context = (0, _utilsFunctions.extend)({}, that, { state: state });
+        // var args = [state].concat(args0);
+        return getterDef.apply(context, args0);
     };
 }
 
