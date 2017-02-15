@@ -7,7 +7,7 @@
 		exports["ReactRebixflux"] = factory(require("react"));
 	else
 		root["ReactRebixflux"] = factory(root["React"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_11__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_12__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 12);
+/******/ 	return __webpack_require__(__webpack_require__.s = 13);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -403,7 +403,6 @@ function createGetterFunction(getterDef, that) {
         //每次执行,都是获取最新的state
         var state = that.$$state;
         var context = (0, _utilsFunctions.extend)({}, that, { state: state });
-        // var args = [state].concat(args0);
         return getterDef.apply(context, args0);
     };
 }
@@ -550,7 +549,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var _react = __webpack_require__(11);
+var _react = __webpack_require__(12);
 
 var _react2 = _interopRequireDefault(_react);
 
@@ -891,7 +890,7 @@ var _utilsFunctions = __webpack_require__(0);
 
 var _utilsArrayUtils = __webpack_require__(3);
 
-var _utilsIsPromise = __webpack_require__(10);
+var _utilsIsPromise = __webpack_require__(11);
 
 var _utilsIsPromise2 = _interopRequireDefault(_utilsIsPromise);
 
@@ -1075,6 +1074,32 @@ function createMergedStore(storeConfig) {
 "use strict";
 
 
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+var variables = {};
+function setVariable(key, value) {
+    variables[key] = value;
+}
+
+function getVariable(key) {
+    return variables[key];
+}
+
+exports["default"] = {
+    _variables: variables,
+    setVariable: setVariable,
+    getVariable: getVariable
+};
+module.exports = exports["default"];
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
@@ -1087,13 +1112,13 @@ function isPromise(p) {
 module.exports = exports['default'];
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_11__;
+module.exports = __WEBPACK_EXTERNAL_MODULE_12__;
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1141,6 +1166,10 @@ var _utilsArrayUtils = __webpack_require__(3);
 
 var ArrayUtils = _interopRequireWildcard(_utilsArrayUtils);
 
+var _variableMgr = __webpack_require__(10);
+
+var variableMgr = _interopRequireWildcard(_variableMgr);
+
 var exportObject = {
     createCommand: _createActions.createCommand,
     createAction: _createActions.createAction,
@@ -1155,7 +1184,7 @@ var exportObject = {
 
 //把它用到的工具函数,也暴漏给外界。
 var extend = functions.extend;
-extend(exportObject, functions, StringUtils, ArrayUtils, connectFunctions);
+extend(exportObject, functions, StringUtils, ArrayUtils, connectFunctions, variableMgr);
 
 exports['default'] = exportObject;
 module.exports = exports['default'];
