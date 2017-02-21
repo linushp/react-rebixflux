@@ -62,12 +62,34 @@ function setStateDebounce(that, changeState) {
 
 }
 
+
+
+const DEFAULT_OPTIONS = {
+    pure: CONST_TRUE,
+    debounce: CONST_FALSE,
+    contextTypes: {},
+    exposeStore: DEFAULT_STORE_CONTEXT_NAME,
+    requireStore: DEFAULT_STORE_CONTEXT_NAME
+};
+
+var USING_DEFAULT_OPTIONS = DEFAULT_OPTIONS;
+export function setConnectDefaultOptions(defaultOptions) {
+    USING_DEFAULT_OPTIONS = extend({}, DEFAULT_OPTIONS, defaultOptions);
+}
+
 /**
+ * demo：
+ * 1. connect(BaseComponent,Store,mapStateToProps,options)
+ * 2. connect(BaseComponent,mapStateToProps,options)
+ * 3. connect(BaseComponent,null,options)
+ * 4. connect(BaseComponent,mapStateToProps)
+ * 5. connect(BaseComponent)
  *
- * @param BaseComponent  必选
- * @param StoreIns 可选
- * @param mapStateToProps 可选
- * @returns {ComponentWrapper}
+ * @param BaseComponent 必须的
+ * @param p1
+ * @param p2
+ * @param p3
+ * @returns {StateProviderComponent}
  */
 export function connect(BaseComponent, p1, p2, p3) {
 
@@ -80,8 +102,8 @@ export function connect(BaseComponent, p1, p2, p3) {
     var storeInsArrayLength = 0;
     var isNoStoreParam = false; //标记是否省略了StoreIns参数
 
-    //省略第StoreIns参数
-    if (isFunction(p1)) {
+    //省略第StoreIns参数.for demo:[2,3,4,5]
+    if (isFunction(p1) || !p1) {
 
         mapStateToProps = p1;
         options = p2;
@@ -102,13 +124,7 @@ export function connect(BaseComponent, p1, p2, p3) {
     }
 
 
-    options = extend({
-        pure: CONST_TRUE,
-        debounce: CONST_FALSE,
-        contextTypes: {},
-        exposeStore: DEFAULT_STORE_CONTEXT_NAME,
-        requireStore: DEFAULT_STORE_CONTEXT_NAME
-    }, options || {});
+    options = extend(USING_DEFAULT_OPTIONS, options || {});
     var {pure, debounce, contextTypes, exposeStore, requireStore} = options;
 
 

@@ -64,7 +64,7 @@ class TodoItem extends React.Component {
     render() {
         var {todo} = this.props;
         var {editing} = this.state;
-
+        console.log("render TodoItem");
         return (
             <li className={classNames({
 					completed:todo.completed,
@@ -90,7 +90,10 @@ class TodoItem extends React.Component {
 
 // export default TodoItem;
 
-export default Rebixflux.connect(TodoItem,function (state,props,context){
-    console.log('TodoItem connect',state,props,context);
-    return {};
-},{contextTypes:['afsda','sdfsadf','sdfsdfa','sdfsdafasd','RootStoreContextName']});
+// export default Rebixflux.connect(TodoItem,function (state,props,context){
+//     console.log('TodoItem connect',state,props,context);
+//     return {};
+// },{contextTypes:['afsda','sdfsadf','sdfsdfa','sdfsdafasd','RootStoreContextName']});
+
+
+export default Rebixflux.connect(TodoItem);

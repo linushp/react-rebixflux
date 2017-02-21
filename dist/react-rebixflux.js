@@ -403,7 +403,6 @@ function createGetterFunction(getterDef, that) {
         //每次执行,都是获取最新的state
         var state = that.$$state;
         var context = (0, _utilsFunctions.extend)({}, that, { state: state });
-        // var args = [state].concat(args0);
         return getterDef.apply(context, args0);
     };
 }
@@ -622,11 +621,18 @@ function setStateDebounce(that, changeState) {
 }
 
 /**
+ * demo：
+ * 1. connect(BaseComponent,Store,mapStateToProps,options)
+ * 2. connect(BaseComponent,mapStateToProps,options)
+ * 3. connect(BaseComponent,null,options)
+ * 4. connect(BaseComponent,mapStateToProps)
+ * 5. connect(BaseComponent)
  *
- * @param BaseComponent  必选
- * @param StoreIns 可选
- * @param mapStateToProps 可选
- * @returns {ComponentWrapper}
+ * @param BaseComponent 必须的
+ * @param p1
+ * @param p2
+ * @param p3
+ * @returns {StateProviderComponent}
  */
 
 function connect(BaseComponent, p1, p2, p3) {
@@ -641,8 +647,8 @@ function connect(BaseComponent, p1, p2, p3) {
     var storeInsArrayLength = 0;
     var isNoStoreParam = false; //标记是否省略了StoreIns参数
 
-    //省略第StoreIns参数
-    if ((0, _utilsFunctions.isFunction)(p1)) {
+    //省略第StoreIns参数.for demo:[2,3,4,5]
+    if ((0, _utilsFunctions.isFunction)(p1) || !p1) {
 
         mapStateToProps = p1;
         options = p2;
