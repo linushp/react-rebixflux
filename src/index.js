@@ -8,6 +8,7 @@ import * as connectFunctions from './connect';
 import * as functions from './utils/functions';
 import * as StringUtils from './utils/StringUtils';
 import * as ArrayUtils from './utils/ArrayUtils';
+import * as serviceMgr from './services';
 
 var exportObject = {
     createCommand: createCommand,
@@ -24,6 +25,6 @@ var exportObject = {
 
 //把它用到的工具函数,也暴漏给外界。
 var extend = functions.extend;
-extend(exportObject,functions,StringUtils,ArrayUtils,connectFunctions);
+extend(exportObject,functions,StringUtils,ArrayUtils,connectFunctions,serviceMgr);
 
 export default exportObject;

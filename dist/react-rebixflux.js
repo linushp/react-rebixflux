@@ -7,7 +7,7 @@
 		exports["ReactRebixflux"] = factory(require("react"));
 	else
 		root["ReactRebixflux"] = factory(root["React"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_11__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_12__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 12);
+/******/ 	return __webpack_require__(__webpack_require__.s = 13);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -539,6 +539,7 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
+exports.setConnectDefaultOptions = setConnectDefaultOptions;
 exports.connect = connect;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -549,7 +550,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var _react = __webpack_require__(11);
+var _react = __webpack_require__(12);
 
 var _react2 = _interopRequireDefault(_react);
 
@@ -620,6 +621,20 @@ function setStateDebounce(that, changeState) {
     }, 1);
 }
 
+var DEFAULT_OPTIONS = {
+    pure: CONST_TRUE,
+    debounce: CONST_FALSE,
+    contextTypes: {},
+    exposeStore: DEFAULT_STORE_CONTEXT_NAME,
+    requireStore: DEFAULT_STORE_CONTEXT_NAME
+};
+
+var USING_DEFAULT_OPTIONS = DEFAULT_OPTIONS;
+
+function setConnectDefaultOptions(defaultOptions) {
+    USING_DEFAULT_OPTIONS = (0, _utilsFunctions.extend)({}, DEFAULT_OPTIONS, defaultOptions);
+}
+
 /**
  * demo：
  * 1. connect(BaseComponent,Store,mapStateToProps,options)
@@ -668,13 +683,7 @@ function connect(BaseComponent, p1, p2, p3) {
         storeInsArrayLength = storeInsArray.length;
     }
 
-    options = (0, _utilsFunctions.extend)({
-        pure: CONST_TRUE,
-        debounce: CONST_FALSE,
-        contextTypes: {},
-        exposeStore: DEFAULT_STORE_CONTEXT_NAME,
-        requireStore: DEFAULT_STORE_CONTEXT_NAME
-    }, options || {});
+    options = (0, _utilsFunctions.extend)(USING_DEFAULT_OPTIONS, options || {});
     var _options = options;
     var pure = _options.pure;
     var debounce = _options.debounce;
@@ -897,7 +906,7 @@ var _utilsFunctions = __webpack_require__(0);
 
 var _utilsArrayUtils = __webpack_require__(3);
 
-var _utilsIsPromise = __webpack_require__(10);
+var _utilsIsPromise = __webpack_require__(11);
 
 var _utilsIsPromise2 = _interopRequireDefault(_utilsIsPromise);
 
@@ -1081,6 +1090,73 @@ function createMergedStore(storeConfig) {
 "use strict";
 
 
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+var _services = {
+    'common': {}
+};
+
+/**
+ * demo :
+ * 1. setService("app1")("UserUtils",{})
+ * 2. setService()("UserUtils",{})
+ *
+ * @param module
+ * @returns {Function}
+ */
+function setService(module) {
+    return function (key, value) {
+        getServices(module)[key] = value;
+    };
+}
+
+/**
+ * demo:
+ * 1.getService("app1")("UserUtils");
+ * 1.getService()("UserUtils");
+ *
+ * @param module
+ * @returns {Function}
+ */
+function getService(module) {
+    return function (key) {
+        return getServices(module)[key];
+    };
+}
+
+/**
+ * demo:
+ * 1.getServices("app1");
+ * 2.getServices();
+ * @param module
+ * @returns {*}
+ */
+function getServices(module) {
+    module = module || "common";
+    _services[module] = _services[module] || {};
+    return _services[module];
+}
+
+function getAllServices() {
+    return _services;
+}
+
+exports["default"] = {
+    setService: setService,
+    getService: getService,
+    getServices: getServices,
+    getAllServices: getAllServices
+};
+module.exports = exports["default"];
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
@@ -1093,13 +1169,13 @@ function isPromise(p) {
 module.exports = exports['default'];
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_11__;
+module.exports = __WEBPACK_EXTERNAL_MODULE_12__;
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1147,6 +1223,10 @@ var _utilsArrayUtils = __webpack_require__(3);
 
 var ArrayUtils = _interopRequireWildcard(_utilsArrayUtils);
 
+var _services = __webpack_require__(10);
+
+var serviceMgr = _interopRequireWildcard(_services);
+
 var exportObject = {
     createCommand: _createActions.createCommand,
     createAction: _createActions.createAction,
@@ -1161,7 +1241,7 @@ var exportObject = {
 
 //把它用到的工具函数,也暴漏给外界。
 var extend = functions.extend;
-extend(exportObject, functions, StringUtils, ArrayUtils, connectFunctions);
+extend(exportObject, functions, StringUtils, ArrayUtils, connectFunctions, serviceMgr);
 
 exports['default'] = exportObject;
 module.exports = exports['default'];
