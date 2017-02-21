@@ -93,12 +93,13 @@ class RebixfluxStore {
             throw new Error('NullPointer');
         }
         var initialState = storeConfig.initialState || {};
-        this.$$storeConfig = storeConfig;
-        this.$$RebixfluxStoreClassName = STORE_CLASS_NAME;
-        this.$$eventBus = new EventBus('StoreEventBus');
-        this.$$state = extend({}, initialState);
-        this.enableListener();
-        buildGetMethod(this, storeConfig);
+        var that = this;
+        that.$$storeConfig = storeConfig;
+        that.$$ClassName = STORE_CLASS_NAME;
+        that.$$eventBus = new EventBus('StoreEventBus');
+        that.$$state = extend({}, initialState);
+        that.enableListener();
+        buildGetMethod(that, storeConfig);
     }
 
     enableListener() {

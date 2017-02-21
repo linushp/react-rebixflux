@@ -436,12 +436,13 @@ var RebixfluxStore = (function () {
             throw new Error('NullPointer');
         }
         var initialState = storeConfig.initialState || {};
-        this.$$storeConfig = storeConfig;
-        this.$$RebixfluxStoreClassName = STORE_CLASS_NAME;
-        this.$$eventBus = new _utilsEventBus2['default']('StoreEventBus');
-        this.$$state = (0, _utilsFunctions.extend)({}, initialState);
-        this.enableListener();
-        buildGetMethod(this, storeConfig);
+        var that = this;
+        that.$$storeConfig = storeConfig;
+        that.$$ClassName = STORE_CLASS_NAME;
+        that.$$eventBus = new _utilsEventBus2['default']('StoreEventBus');
+        that.$$state = (0, _utilsFunctions.extend)({}, initialState);
+        that.enableListener();
+        buildGetMethod(that, storeConfig);
     }
 
     _createClass(RebixfluxStore, [{
@@ -1008,7 +1009,7 @@ var STORE_CLASS_NAME_CONST = _createStore.STORE_CLASS_NAME;
 function mergeStoreState(storeConfig) {
     var result = {};
     (0, _utilsFunctions.forEach)(storeConfig, function (storeIns, name) {
-        if (storeIns && storeIns.$$RebixfluxStoreClassName === STORE_CLASS_NAME_CONST) {
+        if (storeIns && storeIns.$$ClassName === STORE_CLASS_NAME_CONST) {
             result[name] = storeIns.getState();
         }
     });
@@ -1030,11 +1031,12 @@ var RebixfluxMergedStore = (function () {
         if (!storeConfig) {
             throw new Error('NullPointer');
         }
-        this.$$storeConfig = storeConfig;
-        this.$$RebixfluxStoreClassName = STORE_CLASS_NAME_CONST;
-        this.$$eventBus = new _utilsEventBus2['default']('MergedStoreEventBus');
-        this.$$state = mergeStoreState(storeConfig);
-        this.enableListener();
+        var that = this;
+        that.$$storeConfig = storeConfig;
+        that.$$ClassName = STORE_CLASS_NAME_CONST;
+        that.$$eventBus = new _utilsEventBus2['default']('MergedStoreEventBus');
+        that.$$state = mergeStoreState(storeConfig);
+        that.enableListener();
     }
 
     _createClass(RebixfluxMergedStore, [{
@@ -1043,7 +1045,7 @@ var RebixfluxMergedStore = (function () {
             var that = this;
             var storeConfig = this.$$storeConfig;
             (0, _utilsFunctions.forEach)(storeConfig, function (storeIns) {
-                if (storeIns && storeIns.$$RebixfluxStoreClassName === STORE_CLASS_NAME_CONST) {
+                if (storeIns && storeIns.$$ClassName === STORE_CLASS_NAME_CONST) {
                     storeIns.addChangeListener(that.$$handleSubStoreChange);
                 }
             });
@@ -1054,7 +1056,7 @@ var RebixfluxMergedStore = (function () {
             var that = this;
             var storeConfig = this.$$storeConfig;
             (0, _utilsFunctions.forEach)(storeConfig, function (storeIns) {
-                if (storeIns && storeIns.$$RebixfluxStoreClassName === STORE_CLASS_NAME_CONST) {
+                if (storeIns && storeIns.$$ClassName === STORE_CLASS_NAME_CONST) {
                     storeIns.removeChangeListener(that.$$handleSubStoreChange);
                 }
             });

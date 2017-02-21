@@ -7,7 +7,7 @@ const STORE_CLASS_NAME_CONST = STORE_CLASS_NAME;
 function mergeStoreState(storeConfig) {
     var result = {};
     forEach(storeConfig, function (storeIns, name) {
-        if (storeIns && storeIns.$$RebixfluxStoreClassName === STORE_CLASS_NAME_CONST) {
+        if (storeIns && storeIns.$$ClassName === STORE_CLASS_NAME_CONST) {
             result[name] = storeIns.getState();
         }
     });
@@ -21,18 +21,19 @@ class RebixfluxMergedStore {
         if (!storeConfig) {
             throw new Error('NullPointer');
         }
-        this.$$storeConfig = storeConfig;
-        this.$$RebixfluxStoreClassName = STORE_CLASS_NAME_CONST;
-        this.$$eventBus = new EventBus('MergedStoreEventBus');
-        this.$$state = mergeStoreState(storeConfig);
-        this.enableListener();
+        var that = this;
+        that.$$storeConfig = storeConfig;
+        that.$$ClassName = STORE_CLASS_NAME_CONST;
+        that.$$eventBus = new EventBus('MergedStoreEventBus');
+        that.$$state = mergeStoreState(storeConfig);
+        that.enableListener();
     }
 
     enableListener() {
         var that = this;
         var storeConfig = this.$$storeConfig;
         forEach(storeConfig, function (storeIns) {
-            if (storeIns && storeIns.$$RebixfluxStoreClassName === STORE_CLASS_NAME_CONST) {
+            if (storeIns && storeIns.$$ClassName === STORE_CLASS_NAME_CONST) {
                 storeIns.addChangeListener(that.$$handleSubStoreChange);
             }
         });
@@ -42,7 +43,7 @@ class RebixfluxMergedStore {
         var that = this;
         var storeConfig = this.$$storeConfig;
         forEach(storeConfig, function (storeIns) {
-            if (storeIns && storeIns.$$RebixfluxStoreClassName === STORE_CLASS_NAME_CONST) {
+            if (storeIns && storeIns.$$ClassName === STORE_CLASS_NAME_CONST) {
                 storeIns.removeChangeListener(that.$$handleSubStoreChange);
             }
         });
