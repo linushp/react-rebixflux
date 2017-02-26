@@ -72,6 +72,7 @@ export function createCommand(commandName, func) {
 }
 
 //广播一个Command
-export function dispatchCommand(commandName, data, status = STATUS_SUCCESS) {
+export function dispatchCommand(commandName, data, status) {
+    status = status || STATUS_SUCCESS;
     emitActionEvent("Command", commandName, CommandEvent, status, data);
 }
