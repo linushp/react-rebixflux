@@ -16,12 +16,15 @@ function emitActionEvent(actionGroup, actionName, eventName, status, payload) {
     });
 }
 
-export function createAction(actionGroup, actionName, func, actionsConfig = {}, eventName = ActionEvent) {
+export function createAction(actionGroup, actionName, func, actionsConfig, eventName) {
+
+    actionsConfig = actionsConfig || {};
+    eventName = eventName || ActionEvent;
 
     return function () {
 
         var args = toArray(arguments);
-        var result = func.apply(actionsConfig || {}, args);
+        var result = func.apply(actionsConfig, args);
         if (isPromise(result)) {
 
             result.then(function (data) {
