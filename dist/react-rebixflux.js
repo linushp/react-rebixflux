@@ -7,7 +7,7 @@
 		exports["ReactRebixflux"] = factory(require("react"));
 	else
 		root["ReactRebixflux"] = factory(root["React"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_12__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_11__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 13);
+/******/ 	return __webpack_require__(__webpack_require__.s = 12);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -163,7 +163,7 @@ exports.ActionEvent = ActionEvent;
 var CommandEvent = "CommandEvent";
 
 exports.CommandEvent = CommandEvent;
-exports["default"] = new _EventBus2["default"]("ActionEventBus", function (listener, m1, m2, m3, m4, m5) {
+exports["default"] = new _EventBus2["default"]("ActionDispatcher", function (listener, m1, m2, m3, m4, m5) {
 
     try {
         listener(m1, m2, m3, m4, m5);
@@ -326,9 +326,9 @@ var _utilsEventBus = __webpack_require__(2);
 
 var _utilsEventBus2 = _interopRequireDefault(_utilsEventBus);
 
-var _utilsActionEventBus = __webpack_require__(1);
+var _utilsActionDispatcher = __webpack_require__(1);
 
-var _utilsActionEventBus2 = _interopRequireDefault(_utilsActionEventBus);
+var _utilsActionDispatcher2 = _interopRequireDefault(_utilsActionDispatcher);
 
 var _utilsStringUtils = __webpack_require__(4);
 
@@ -448,14 +448,14 @@ var RebixfluxStore = (function () {
     _createClass(RebixfluxStore, [{
         key: 'enableListener',
         value: function enableListener() {
-            _utilsActionEventBus2['default'].on(_utilsActionEventBus.ActionEvent, this.$$handleActionEvent);
-            _utilsActionEventBus2['default'].on(_utilsActionEventBus.CommandEvent, this.$$handleCommandEvent);
+            _utilsActionDispatcher2['default'].on(_utilsActionDispatcher.ActionEvent, this.$$handleActionEvent);
+            _utilsActionDispatcher2['default'].on(_utilsActionDispatcher.CommandEvent, this.$$handleCommandEvent);
         }
     }, {
         key: 'disableListener',
         value: function disableListener() {
-            _utilsActionEventBus2['default'].off(_utilsActionEventBus.ActionEvent, this.$$handleActionEvent);
-            _utilsActionEventBus2['default'].off(_utilsActionEventBus.CommandEvent, this.$$handleCommandEvent);
+            _utilsActionDispatcher2['default'].off(_utilsActionDispatcher.ActionEvent, this.$$handleActionEvent);
+            _utilsActionDispatcher2['default'].off(_utilsActionDispatcher.CommandEvent, this.$$handleCommandEvent);
         }
 
         /**
@@ -551,7 +551,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var _react = __webpack_require__(12);
+var _react = __webpack_require__(11);
 
 var _react2 = _interopRequireDefault(_react);
 
@@ -561,9 +561,9 @@ var _utilsShallowEqual = __webpack_require__(6);
 
 var _utilsShallowEqual2 = _interopRequireDefault(_utilsShallowEqual);
 
-var _utilsActionEventBus = __webpack_require__(1);
+var _utilsActionDispatcher = __webpack_require__(1);
 
-var _utilsActionEventBus2 = _interopRequireDefault(_utilsActionEventBus);
+var _utilsActionDispatcher2 = _interopRequireDefault(_utilsActionDispatcher);
 
 var _utilsStringUtils = __webpack_require__(4);
 
@@ -775,7 +775,7 @@ function connect(BaseComponent, p1, p2, p3) {
             value: function componentDidMount() {
                 var that = this;
 
-                _utilsActionEventBus2['default'].on(_utilsActionEventBus.CommandEvent, that.handleCommand);
+                _utilsActionDispatcher2['default'].on(_utilsActionDispatcher.CommandEvent, that.handleCommand);
 
                 if (!isNoStoreParam) {
                     (0, _utilsFunctions.forEach)(storeInsArray, function (StoreIns0) {
@@ -789,7 +789,7 @@ function connect(BaseComponent, p1, p2, p3) {
             value: function componentWillUnmount() {
                 var that = this;
 
-                _utilsActionEventBus2['default'].off(_utilsActionEventBus.CommandEvent, that.handleCommand);
+                _utilsActionDispatcher2['default'].off(_utilsActionDispatcher.CommandEvent, that.handleCommand);
 
                 if (!isNoStoreParam) {
                     (0, _utilsFunctions.forEach)(storeInsArray, function (StoreIns0) {
@@ -900,6 +900,7 @@ Object.defineProperty(exports, '__esModule', {
 exports.createAction = createAction;
 exports.createActions = createActions;
 exports.createCommand = createCommand;
+exports.dispatchCommand = dispatchCommand;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -907,16 +908,20 @@ var _utilsFunctions = __webpack_require__(0);
 
 var _utilsArrayUtils = __webpack_require__(3);
 
-var _utilsIsPromise = __webpack_require__(11);
+var _utilsIsPromise = __webpack_require__(10);
 
 var _utilsIsPromise2 = _interopRequireDefault(_utilsIsPromise);
 
-var _utilsActionEventBus = __webpack_require__(1);
+var _utilsActionDispatcher = __webpack_require__(1);
 
-var _utilsActionEventBus2 = _interopRequireDefault(_utilsActionEventBus);
+var _utilsActionDispatcher2 = _interopRequireDefault(_utilsActionDispatcher);
+
+var STATUS_PENDING = 'pending';
+var STATUS_SUCCESS = 'success';
+var STATUS_ERROR = 'error';
 
 function emitActionEvent(actionGroup, actionName, eventName, status, payload) {
-    _utilsActionEventBus2['default'].emit(eventName, {
+    _utilsActionDispatcher2['default'].emit(eventName, {
         actionName: actionName,
         actionGroup: actionGroup,
         status: status,
@@ -926,7 +931,7 @@ function emitActionEvent(actionGroup, actionName, eventName, status, payload) {
 
 function createAction(actionGroup, actionName, func) {
     var actionsConfig = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
-    var eventName = arguments.length <= 4 || arguments[4] === undefined ? _utilsActionEventBus.ActionEvent : arguments[4];
+    var eventName = arguments.length <= 4 || arguments[4] === undefined ? _utilsActionDispatcher.ActionEvent : arguments[4];
 
     return function () {
 
@@ -935,14 +940,14 @@ function createAction(actionGroup, actionName, func) {
         if ((0, _utilsIsPromise2['default'])(result)) {
 
             result.then(function (data) {
-                emitActionEvent(actionGroup, actionName, eventName, 'success', data);
+                emitActionEvent(actionGroup, actionName, eventName, STATUS_SUCCESS, data);
             }, function (data) {
-                emitActionEvent(actionGroup, actionName, eventName, 'error', data);
+                emitActionEvent(actionGroup, actionName, eventName, STATUS_ERROR, data);
             });
 
-            emitActionEvent(actionGroup, actionName, eventName, 'pending', result);
+            emitActionEvent(actionGroup, actionName, eventName, STATUS_PENDING, result);
         } else {
-            emitActionEvent(actionGroup, actionName, eventName, 'success', result);
+            emitActionEvent(actionGroup, actionName, eventName, STATUS_SUCCESS, result);
         }
 
         return result;
@@ -965,7 +970,7 @@ function createActions(actionGroup, actionsConfig) {
     var actions = {};
 
     (0, _utilsFunctions.forEach)(actionsConfig, function (func, actionName) {
-        actions[actionName] = createAction(actionGroup, actionName, func, actionsConfig, _utilsActionEventBus.ActionEvent);
+        actions[actionName] = createAction(actionGroup, actionName, func, actionsConfig, _utilsActionDispatcher.ActionEvent);
     });
 
     return actions;
@@ -974,7 +979,15 @@ function createActions(actionGroup, actionsConfig) {
 //Command是一个特殊的Action
 
 function createCommand(commandName, func) {
-    return createAction("Command", commandName, func, {}, _utilsActionEventBus.CommandEvent);
+    return createAction("Command", commandName, func, {}, _utilsActionDispatcher.CommandEvent);
+}
+
+//广播一个Command
+
+function dispatchCommand(commandName, data) {
+    var status = arguments.length <= 2 || arguments[2] === undefined ? STATUS_SUCCESS : arguments[2];
+
+    emitActionEvent("Command", commandName, _utilsActionDispatcher.CommandEvent, status, data);
 }
 
 /***/ }),
@@ -1092,73 +1105,6 @@ function createMergedStore(storeConfig) {
 "use strict";
 
 
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-var _services = {
-    'common': {}
-};
-
-/**
- * demo :
- * 1. setService("app1")("UserUtils",{})
- * 2. setService()("UserUtils",{})
- *
- * @param module
- * @returns {Function}
- */
-function setService(module) {
-    return function (key, value) {
-        getServices(module)[key] = value;
-    };
-}
-
-/**
- * demo:
- * 1.getService("app1")("UserUtils");
- * 1.getService()("UserUtils");
- *
- * @param module
- * @returns {Function}
- */
-function getService(module) {
-    return function (key) {
-        return getServices(module)[key];
-    };
-}
-
-/**
- * demo:
- * 1.getServices("app1");
- * 2.getServices();
- * @param module
- * @returns {*}
- */
-function getServices(module) {
-    module = module || "common";
-    _services[module] = _services[module] || {};
-    return _services[module];
-}
-
-function getAllServices() {
-    return _services;
-}
-
-exports["default"] = {
-    setService: setService,
-    getService: getService,
-    getServices: getServices,
-    getAllServices: getAllServices
-};
-module.exports = exports["default"];
-
-/***/ }),
-/* 11 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
@@ -1171,13 +1117,13 @@ function isPromise(p) {
 module.exports = exports['default'];
 
 /***/ }),
-/* 12 */
+/* 11 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_12__;
+module.exports = __WEBPACK_EXTERNAL_MODULE_11__;
 
 /***/ }),
-/* 13 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1205,9 +1151,9 @@ var _utilsEventBus = __webpack_require__(2);
 
 var _utilsEventBus2 = _interopRequireDefault(_utilsEventBus);
 
-var _utilsActionEventBus = __webpack_require__(1);
+var _utilsActionDispatcher = __webpack_require__(1);
 
-var _utilsActionEventBus2 = _interopRequireDefault(_utilsActionEventBus);
+var _utilsActionDispatcher2 = _interopRequireDefault(_utilsActionDispatcher);
 
 var _connect = __webpack_require__(7);
 
@@ -1225,11 +1171,8 @@ var _utilsArrayUtils = __webpack_require__(3);
 
 var ArrayUtils = _interopRequireWildcard(_utilsArrayUtils);
 
-var _services = __webpack_require__(10);
-
-var serviceMgr = _interopRequireWildcard(_services);
-
 var exportObject = {
+    dispatchCommand: _createActions.dispatchCommand,
     createCommand: _createActions.createCommand,
     createAction: _createActions.createAction,
     createActions: _createActions.createActions,
@@ -1238,12 +1181,12 @@ var exportObject = {
 
     shallowEqual: _utilsShallowEqual2['default'],
     EventBus: _utilsEventBus2['default'],
-    ActionEventBus: _utilsActionEventBus2['default']
+    ActionDispatcher: _utilsActionDispatcher2['default']
 };
 
 //把它用到的工具函数,也暴漏给外界。
 var extend = functions.extend;
-extend(exportObject, functions, StringUtils, ArrayUtils, connectFunctions, serviceMgr);
+extend(exportObject, functions, StringUtils, ArrayUtils, connectFunctions);
 
 exports['default'] = exportObject;
 module.exports = exports['default'];

@@ -1,11 +1,14 @@
 import {forEach, isString} from './utils/functions'
 import {toArray} from './utils/ArrayUtils';
 import isPromise from './utils/isPromise';
-import ActionEventBus, {ActionEvent, CommandEvent}from './utils/ActionEventBus';
+import ActionDispatcher, {ActionEvent, CommandEvent}from './utils/ActionDispatcher';
 
+const STATUS_PENDING = 'pending';
+const STATUS_SUCCESS = 'success';
+const STATUS_ERROR = 'error';
 
 function emitActionEvent(actionGroup, actionName, eventName, status, payload) {
-    ActionEventBus.emit(eventName, {
+    ActionDispatcher.emit(eventName, {
         actionName,
         actionGroup,
         status,
@@ -22,14 +25,14 @@ export function createAction(actionGroup, actionName, func, actionsConfig = {}, 
         if (isPromise(result)) {
 
             result.then(function (data) {
-                emitActionEvent(actionGroup, actionName, eventName, 'success', data);
+                emitActionEvent(actionGroup, actionName, eventName, STATUS_SUCCESS, data);
             }, function (data) {
-                emitActionEvent(actionGroup, actionName, eventName, 'error', data);
+                emitActionEvent(actionGroup, actionName, eventName, STATUS_ERROR, data);
             });
 
-            emitActionEvent(actionGroup, actionName, eventName, 'pending', result);
+            emitActionEvent(actionGroup, actionName, eventName, STATUS_PENDING, result);
         } else {
-            emitActionEvent(actionGroup, actionName, eventName, 'success', result);
+            emitActionEvent(actionGroup, actionName, eventName, STATUS_SUCCESS, result);
         }
 
         return result;
@@ -63,4 +66,9 @@ export function createActions(actionGroup, actionsConfig) {
 //Command是一个特殊的Action
 export function createCommand(commandName, func) {
     return createAction("Command", commandName, func, {}, CommandEvent);
+}
+
+//广播一个Command
+export function dispatchCommand(commandName, data, status = STATUS_SUCCESS) {
+    emitActionEvent("Command", commandName, CommandEvent, status, data);
 }

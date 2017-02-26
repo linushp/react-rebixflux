@@ -1,7 +1,7 @@
 import React, {PropTypes}from 'react';
 import {extend, isArray, isFunction, forEach} from './utils/functions';
 import shallowEqual from './utils/shallowEqual';
-import ActionEventBus, {CommandEvent} from './utils/ActionEventBus';
+import ActionDispatcher, {CommandEvent} from './utils/ActionDispatcher';
 import {toFirstCharUpper} from './utils/StringUtils';
 
 
@@ -61,7 +61,6 @@ function setStateDebounce(that, changeState) {
     }, 1);
 
 }
-
 
 
 const DEFAULT_OPTIONS = {
@@ -159,7 +158,7 @@ export function connect(BaseComponent, p1, p2, p3) {
         componentDidMount() {
             var that = this;
 
-            ActionEventBus.on(CommandEvent, that.handleCommand);
+            ActionDispatcher.on(CommandEvent, that.handleCommand);
 
             if (!isNoStoreParam) {
                 forEach(storeInsArray, function (StoreIns0) {
@@ -172,7 +171,7 @@ export function connect(BaseComponent, p1, p2, p3) {
         componentWillUnmount() {
             var that = this;
 
-            ActionEventBus.off(CommandEvent, that.handleCommand);
+            ActionDispatcher.off(CommandEvent, that.handleCommand);
 
             if (!isNoStoreParam) {
                 forEach(storeInsArray, function (StoreIns0) {

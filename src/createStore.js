@@ -1,5 +1,5 @@
 import EventBus from './utils/EventBus';
-import ActionEventBus, {ActionEvent, CommandEvent} from './utils/ActionEventBus';
+import ActionDispatcher, {ActionEvent, CommandEvent} from './utils/ActionDispatcher';
 import {toFirstCharUpper, startWith} from './utils/StringUtils';
 import {toArray} from './utils/ArrayUtils';
 import {extend, forEach} from './utils/functions';
@@ -103,13 +103,13 @@ class RebixfluxStore {
     }
 
     enableListener() {
-        ActionEventBus.on(ActionEvent, this.$$handleActionEvent);
-        ActionEventBus.on(CommandEvent, this.$$handleCommandEvent);
+        ActionDispatcher.on(ActionEvent, this.$$handleActionEvent);
+        ActionDispatcher.on(CommandEvent, this.$$handleCommandEvent);
     }
 
     disableListener() {
-        ActionEventBus.off(ActionEvent, this.$$handleActionEvent);
-        ActionEventBus.off(CommandEvent, this.$$handleCommandEvent);
+        ActionDispatcher.off(ActionEvent, this.$$handleActionEvent);
+        ActionDispatcher.off(CommandEvent, this.$$handleCommandEvent);
     }
 
     /**

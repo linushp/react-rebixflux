@@ -1,6 +1,6 @@
 import EventBus from './utils/EventBus';
 import {forEach} from './utils/functions'
-import {EVENT_STORE_CHANGE,STORE_CLASS_NAME} from './createStore';
+import {EVENT_STORE_CHANGE, STORE_CLASS_NAME} from './createStore';
 
 const STORE_CLASS_NAME_CONST = STORE_CLASS_NAME;
 

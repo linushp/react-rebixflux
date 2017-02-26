@@ -25,8 +25,8 @@ export const isArray = Array.isArray;
 
 export const forEach = function (obj, it) {
     if (isArray(obj)) {
-        Array.prototype.forEach.call(obj,it);
-    }else {
+        Array.prototype.forEach.call(obj, it);
+    } else {
         for (var key in obj) {
             if (obj.hasOwnProperty(key)) {
                 var value = obj[key];
