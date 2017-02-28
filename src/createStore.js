@@ -76,11 +76,11 @@ function createGetterFunction(getterDef, that) {
 
 
 function buildGetMethod(that, storeConfig) {
-    for (var k in storeConfig) {
-        if (storeConfig.hasOwnProperty(k)) {
-            if (startWith('get')) {
-                var handler = storeConfig[k];
-                that[k] = createGetterFunction(handler, that);
+    for (var methodName in storeConfig) {
+        if (storeConfig.hasOwnProperty(methodName) && methodName.length > 0) {
+            if (startWith(methodName, 'get') || startWith(methodName, 'is') || startWith(methodName, 'has')) {
+                var handler = storeConfig[methodName];
+                that[methodName] = createGetterFunction(handler, that);
             }
         }
     }

@@ -408,11 +408,11 @@ function createGetterFunction(getterDef, that) {
 }
 
 function buildGetMethod(that, storeConfig) {
-    for (var k in storeConfig) {
-        if (storeConfig.hasOwnProperty(k)) {
-            if ((0, _utilsStringUtils.startWith)('get')) {
-                var handler = storeConfig[k];
-                that[k] = createGetterFunction(handler, that);
+    for (var methodName in storeConfig) {
+        if (storeConfig.hasOwnProperty(methodName) && methodName.length > 0) {
+            if ((0, _utilsStringUtils.startWith)(methodName, 'get') || (0, _utilsStringUtils.startWith)(methodName, 'is') || (0, _utilsStringUtils.startWith)(methodName, 'has')) {
+                var handler = storeConfig[methodName];
+                that[methodName] = createGetterFunction(handler, that);
             }
         }
     }
@@ -929,14 +929,15 @@ function emitActionEvent(actionGroup, actionName, eventName, status, payload) {
     });
 }
 
-function createAction(actionGroup, actionName, func) {
-    var actionsConfig = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
-    var eventName = arguments.length <= 4 || arguments[4] === undefined ? _utilsActionDispatcher.ActionEvent : arguments[4];
+function createAction(actionGroup, actionName, func, actionsConfig, eventName) {
+
+    actionsConfig = actionsConfig || {};
+    eventName = eventName || _utilsActionDispatcher.ActionEvent;
 
     return function () {
 
         var args = (0, _utilsArrayUtils.toArray)(arguments);
-        var result = func.apply(actionsConfig || {}, args);
+        var result = func.apply(actionsConfig, args);
         if ((0, _utilsIsPromise2['default'])(result)) {
 
             result.then(function (data) {
@@ -984,9 +985,8 @@ function createCommand(commandName, func) {
 
 //广播一个Command
 
-function dispatchCommand(commandName, data) {
-    var status = arguments.length <= 2 || arguments[2] === undefined ? STATUS_SUCCESS : arguments[2];
-
+function dispatchCommand(commandName, data, status) {
+    status = status || STATUS_SUCCESS;
     emitActionEvent("Command", commandName, _utilsActionDispatcher.CommandEvent, status, data);
 }
 
