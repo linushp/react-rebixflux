@@ -8,6 +8,7 @@ import * as connectFunctions from './connect';
 import * as functions from './utils/functions';
 import * as StringUtils from './utils/StringUtils';
 import * as ArrayUtils from './utils/ArrayUtils';
+import PureRenderComponent from './PureRenderComponent';
 
 var exportObject = {
     dispatchCommand: dispatchCommand,
@@ -16,7 +17,7 @@ var exportObject = {
     createActions: createActions,
     createStore: createStore,
     createMergedStore: createMergedStore,
-
+    PureRenderComponent:PureRenderComponent,
     shallowEqual: shallowEqual,
     EventBus: EventBus,
     ActionDispatcher: ActionDispatcher
