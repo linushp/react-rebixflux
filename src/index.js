@@ -9,7 +9,7 @@ import * as functions from './utils/functions';
 import * as StringUtils from './utils/StringUtils';
 import * as ArrayUtils from './utils/ArrayUtils';
 import PureRenderComponent from './components/PureRenderComponent';
-import createPureComponent from './components/createPureComponent';
+var createPureComponent = require( './components/createPureComponent');
 
 var exportObject = {
     dispatchCommand: dispatchCommand,
