@@ -8,8 +8,7 @@ import * as connectFunctions from './connect';
 import * as functions from './utils/functions';
 import * as StringUtils from './utils/StringUtils';
 import * as ArrayUtils from './utils/ArrayUtils';
-import PureRenderComponent from './components/PureRenderComponent';
-import createPureComponent from './components/createPureComponent';
+import PureRenderComponent,{createPureComponent} from './components/PureRenderComponent';
 
 var exportObject = {
     dispatchCommand: dispatchCommand,
