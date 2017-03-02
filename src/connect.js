@@ -244,15 +244,24 @@ export function connect(BaseComponent, p1, p2, p3) {
 
                 var context = that.context || {};
                 var connectState = that.state;
+                var mapperResult = null;
 
-                if (!isNoStoreParam) {
+                if (isNoStoreParam) {
+
+                    //如果没有Store作为参数,使用Context上面存储的Store去Mapper
+
+                    var contextState = context[requireStore] || {};
+                    mapperResult = mapStateToProps(contextState, props, context, connectState, that);
+                } else {
+
+                    //如果有Store作为参数,使用Store去Mapper
 
                     var stateParamForCalc = getStateParam(connectState, isArrayStoreIns, storeInsArrayLength);
-                    props = extend(props, mapStateToProps(stateParamForCalc, props, context, connectState, that));
+                    mapperResult = mapStateToProps(stateParamForCalc, props, context, connectState, that);
+                }
 
-                } else {
-                    var contextState = context[requireStore] || {};
-                    props = extend(props, mapStateToProps(contextState, props, context, connectState, that));
+                if (mapperResult) {
+                    props = extend(props, mapperResult);
                 }
             }
 
