@@ -14,8 +14,24 @@ export function createPureComponent(renderFunction) {
             return isOk;
         },
 
+        //createProxyHandler: function (handlerName) {
+        //    var that = this;
+        //    var proxyName = '_proxy_' + handlerName;
+        //    var foo = that[proxyName];
+        //    if (!foo) {
+        //        foo = function () {
+        //            var props = that.props;
+        //            var realHandler = props[handlerName];
+        //            realHandler(props);
+        //        };
+        //        that[proxyName] = foo;
+        //    }
+        //    return foo;
+        //},
+
         render: function () {
             var props = this.props;
+            //var createProxyHandler = this.createProxyHandler;
             return renderFunction ? renderFunction(props) : null;
         }
 
