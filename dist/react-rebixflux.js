@@ -7,7 +7,7 @@
 		exports["ReactRebixflux"] = factory(require("react"));
 	else
 		root["ReactRebixflux"] = factory(root["React"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_6__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_7__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 14);
+/******/ 	return __webpack_require__(__webpack_require__.s = 13);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -179,83 +179,58 @@ exports["default"] = new _EventBus2["default"]("ActionDispatcher", function (lis
 "use strict";
 
 
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 var PRIVATE_LISTENERS_NAME = "$$listeners$$";
+var PRIVATE_LISTENER_WRAPPER = 'listenerWrapper';
 
-function getListeners(eventBusInstance) {
-    return eventBusInstance[PRIVATE_LISTENERS_NAME];
+function EventBusClass(name, listenerWrapper) {
+    var that = this;
+    that.name = name;
+    that[PRIVATE_LISTENER_WRAPPER] = listenerWrapper;
+    that[PRIVATE_LISTENERS_NAME] = [];
 }
 
-function setListeners(eventBusInstance, listeners) {
-    return eventBusInstance[PRIVATE_LISTENERS_NAME] = listeners;
-}
+var EventBusClassPrototype = EventBusClass.prototype;
 
-var EventBus = (function () {
-    function EventBus(name, listenerWrapper) {
-        _classCallCheck(this, EventBus);
+EventBusClassPrototype.on = function (eventName, listener) {
+    this[PRIVATE_LISTENERS_NAME].push({
+        eventName: eventName,
+        listener: listener
+    });
+};
 
-        this.name = name;
-        this.listenerWrapper = listenerWrapper;
-        setListeners(this, []);
+EventBusClassPrototype.off = function (eventName, listener) {
+    var that = this;
+    var listeners = that[PRIVATE_LISTENERS_NAME];
+    var result = [];
+    for (var i = 0; i < listeners.length; i++) {
+        var m = listeners[i];
+        if (m.eventName === eventName && m.listener === listener) {
+            //skip
+        } else {
+                result.push(m);
+            }
     }
+    that[PRIVATE_LISTENERS_NAME] = result;
+};
 
-    _createClass(EventBus, [{
-        key: "on",
-        value: function on(eventName, listener) {
-            getListeners(this).push({
-                eventName: eventName,
-                listener: listener
-            });
-        }
-    }, {
-        key: "off",
-        value: function off(eventName, listener) {
-            var listeners = getListeners(this);
-            var result = [];
-            for (var i = 0; i < listeners.length; i++) {
-                var m = listeners[i];
-                if (m.eventName === eventName && m.listener === listener) {
-                    //skip
-                } else {
-                        result.push(m);
-                    }
-            }
+EventBusClassPrototype.emit = function (eventName, m1, m2, m3, m4, m5) {
+    var that = this;
+    var listeners = that[PRIVATE_LISTENERS_NAME];
+    var listenerWrapper = that[PRIVATE_LISTENER_WRAPPER];
 
-            setListeners(this, result);
-        }
-    }, {
-        key: "emit",
-        value: function emit(eventName, m1, m2, m3, m4, m5) {
-            var that = this;
-            var listeners = getListeners(that);
-            var listenerWrapper = that.listenerWrapper;
-
-            for (var i = 0; i < listeners.length; i++) {
-                var m = listeners[i];
-                if (m.eventName === eventName && m.listener) {
-
-                    if (listenerWrapper) {
-                        listenerWrapper(m.listener, m1, m2, m3, m4, m5);
-                    } else {
-                        m.listener(m1, m2, m3, m4, m5);
-                    }
-                }
+    for (var i = 0; i < listeners.length; i++) {
+        var m = listeners[i];
+        if (m.eventName === eventName && m.listener) {
+            if (listenerWrapper) {
+                listenerWrapper(m.listener, m1, m2, m3, m4, m5);
+            } else {
+                m.listener(m1, m2, m3, m4, m5);
             }
         }
-    }]);
+    }
+};
 
-    return EventBus;
-})();
-
-exports["default"] = EventBus;
-module.exports = exports["default"];
+module.exports = EventBusClass;
 
 /***/ }),
 /* 3 */
@@ -342,12 +317,6 @@ module.exports = exports["default"];
 
 /***/ }),
 /* 6 */
-/***/ (function(module, exports) {
-
-module.exports = __WEBPACK_EXTERNAL_MODULE_6__;
-
-/***/ }),
-/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -356,70 +325,9 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_6__;
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
-
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var _react = __webpack_require__(6);
-
-var _react2 = _interopRequireDefault(_react);
-
-var _utilsShallowEqual = __webpack_require__(5);
-
-var _utilsShallowEqual2 = _interopRequireDefault(_utilsShallowEqual);
-
-function shallowCompare(component, nextProps, nextState) {
-    return !(0, _utilsShallowEqual2['default'])(component.props, nextProps) || !(0, _utilsShallowEqual2['default'])(component.state, nextState);
-}
-
-var PureRenderComponent = (function (_React$Component) {
-    _inherits(PureRenderComponent, _React$Component);
-
-    function PureRenderComponent() {
-        _classCallCheck(this, PureRenderComponent);
-
-        _get(Object.getPrototypeOf(PureRenderComponent.prototype), 'constructor', this).apply(this, arguments);
-    }
-
-    _createClass(PureRenderComponent, [{
-        key: 'shouldComponentUpdate',
-        value: function shouldComponentUpdate(nextProps, nextState) {
-            var isOk = shallowCompare(this, nextProps, nextState);
-            return isOk;
-        }
-    }]);
-
-    return PureRenderComponent;
-})(_react2['default'].Component);
-
-exports['default'] = PureRenderComponent;
-module.exports = exports['default'];
-
-/***/ }),
-/* 8 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, '__esModule', {
-    value: true
-});
-
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
 exports.createStore = createStore;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var _utilsEventBus = __webpack_require__(2);
 
@@ -517,123 +425,115 @@ function buildGetMethod(that, storeConfig) {
     }
 }
 
-var RebixfluxStore = (function () {
-    function RebixfluxStore(storeConfig) {
-        var _this = this;
+function RebixfluxStoreClass(storeConfig) {
 
-        _classCallCheck(this, RebixfluxStore);
-
-        this.$$handleActionEvent = function (actionEvent) {
-            handleActionOrCommandEvent(_this, actionEvent, 'on');
-        };
-
-        this.$$handleCommandEvent = function (commandEvent) {
-            handleActionOrCommandEvent(_this, commandEvent, 'onCmd');
-        };
-
-        if (!storeConfig) {
-            throw new Error('NullPointer');
-        }
-        var initialState = storeConfig.initialState || {};
-        var that = this;
-        that.$$storeConfig = storeConfig;
-        that.$$ClassName = STORE_CLASS_NAME;
-        that.$$eventBus = new _utilsEventBus2['default']('StoreEventBus');
-        that.$$state = (0, _utilsFunctions.extend)({}, initialState);
-        that.enableListener();
-        buildGetMethod(that, storeConfig);
+    if (!storeConfig) {
+        throw new Error('NullPointer');
     }
 
-    _createClass(RebixfluxStore, [{
-        key: 'enableListener',
-        value: function enableListener() {
-            _utilsActionDispatcher2['default'].on(_utilsActionDispatcher.ActionEvent, this.$$handleActionEvent);
-            _utilsActionDispatcher2['default'].on(_utilsActionDispatcher.CommandEvent, this.$$handleCommandEvent);
-        }
-    }, {
-        key: 'disableListener',
-        value: function disableListener() {
-            _utilsActionDispatcher2['default'].off(_utilsActionDispatcher.ActionEvent, this.$$handleActionEvent);
-            _utilsActionDispatcher2['default'].off(_utilsActionDispatcher.CommandEvent, this.$$handleCommandEvent);
-        }
+    var initialState = storeConfig.initialState || {};
+    var that = this;
+    that.$$storeConfig = storeConfig;
+    that.$$ClassName = STORE_CLASS_NAME;
+    that.$$eventBus = new _utilsEventBus2['default']('StoreEventBus');
+    that.$$state = (0, _utilsFunctions.extend)({}, initialState);
 
-        /**
-         *
-         * @param actionEvent => {actionNameactionGroupstatuspayload}
-         */
-    }, {
-        key: 'addChangeListener',
-        value: function addChangeListener(listener) {
-            this.$$eventBus.on(EVENT_STORE_CHANGE, listener);
-        }
-    }, {
-        key: 'removeChangeListener',
-        value: function removeChangeListener(listener) {
-            this.$$eventBus.off(EVENT_STORE_CHANGE, listener);
-        }
-    }, {
-        key: 'getState',
-        value: function getState() {
-            return this.$$state;
-        }
-    }]);
+    that.$$handleActionEvent = function (actionEvent) {
+        handleActionOrCommandEvent(that, actionEvent, 'on');
+    };
+    that.$$handleCommandEvent = function (commandEvent) {
+        handleActionOrCommandEvent(that, commandEvent, 'onCmd');
+    };
 
-    return RebixfluxStore;
-})();
+    that.getState = function () {
+        return that.$$state;
+    };
+
+    that.addChangeListener = function (listener) {
+        that.$$eventBus.on(EVENT_STORE_CHANGE, listener);
+    };
+
+    that.removeChangeListener = function (listener) {
+        that.$$eventBus.off(EVENT_STORE_CHANGE, listener);
+    };
+
+    that.enableListener = function () {
+        _utilsActionDispatcher2['default'].on(_utilsActionDispatcher.ActionEvent, that.$$handleActionEvent);
+        _utilsActionDispatcher2['default'].on(_utilsActionDispatcher.CommandEvent, that.$$handleCommandEvent);
+    };
+    that.disableListener = function () {
+        _utilsActionDispatcher2['default'].off(_utilsActionDispatcher.ActionEvent, that.$$handleActionEvent);
+        _utilsActionDispatcher2['default'].off(_utilsActionDispatcher.CommandEvent, that.$$handleCommandEvent);
+    };
+
+    buildGetMethod(that, storeConfig);
+    that.enableListener();
+}
 
 function createStore(storeConfig) {
-    return new RebixfluxStore(storeConfig);
+    return new RebixfluxStoreClass(storeConfig);
 }
 
 /***/ }),
-/* 9 */
+/* 7 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE_7__;
+
+/***/ }),
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+Object.defineProperty(exports, '__esModule', {
+    value: true
+});
+exports.createPureComponent = createPureComponent;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var _react = __webpack_require__(6);
+var _react = __webpack_require__(7);
 
 var _react2 = _interopRequireDefault(_react);
 
-var _PureRenderComponent2 = __webpack_require__(7);
+var _utilsShallowEqual = __webpack_require__(5);
 
-var _PureRenderComponent3 = _interopRequireDefault(_PureRenderComponent2);
+var _utilsShallowEqual2 = _interopRequireDefault(_utilsShallowEqual);
 
-module.exports = function createPureComponent(renderFunction) {
-    return (function (_PureRenderComponent) {
-        _inherits(newComponent, _PureRenderComponent);
+function shallowCompare(component, nextProps, nextState) {
+    return !(0, _utilsShallowEqual2['default'])(component.props, nextProps) || !(0, _utilsShallowEqual2['default'])(component.state, nextState);
+}
 
-        function newComponent() {
-            _classCallCheck(this, newComponent);
+// export default class PureRenderComponent extends React.Component {
+//     shouldComponentUpdate(nextProps, nextState) {
+//         var isOk =  shallowCompare(this, nextProps, nextState);
+//         return isOk;
+//     }
+// }
 
-            _get(Object.getPrototypeOf(newComponent.prototype), 'constructor', this).apply(this, arguments);
+function createPureComponent(renderFunction) {
+    return _react2['default'].createClass({
+
+        shouldComponentUpdate: function shouldComponentUpdate(nextProps, nextState) {
+            var isOk = shallowCompare(this, nextProps, nextState);
+            return isOk;
+        },
+
+        render: function render() {
+            var props = this.props;
+            return renderFunction ? renderFunction(props) : null;
         }
 
-        _createClass(newComponent, [{
-            key: 'render',
-            value: function render() {
-                var props = this.props;
-                return renderFunction(props);
-            }
-        }]);
+    });
+}
 
-        return newComponent;
-    })(_PureRenderComponent3['default']);
-};
+var PureRenderComponent = createPureComponent();
+exports.PureRenderComponent = PureRenderComponent;
 
 /***/ }),
-/* 10 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -660,7 +560,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var _react = __webpack_require__(6);
+var _react = __webpack_require__(7);
 
 var _react2 = _interopRequireDefault(_react);
 
@@ -1007,7 +907,7 @@ function connect(BaseComponent, p1, p2, p3) {
 // }
 
 /***/ }),
-/* 11 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1027,7 +927,7 @@ var _utilsFunctions = __webpack_require__(0);
 
 var _utilsArrayUtils = __webpack_require__(3);
 
-var _utilsIsPromise = __webpack_require__(13);
+var _utilsIsPromise = __webpack_require__(12);
 
 var _utilsIsPromise2 = _interopRequireDefault(_utilsIsPromise);
 
@@ -1110,7 +1010,7 @@ function dispatchCommand(commandName, data, status) {
 }
 
 /***/ }),
-/* 12 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1119,14 +1019,9 @@ function dispatchCommand(commandName, data, status) {
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
-
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
 exports.createMergedStore = createMergedStore;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var _utilsEventBus = __webpack_require__(2);
 
@@ -1134,7 +1029,7 @@ var _utilsEventBus2 = _interopRequireDefault(_utilsEventBus);
 
 var _utilsFunctions = __webpack_require__(0);
 
-var _createStore = __webpack_require__(8);
+var _createStore = __webpack_require__(6);
 
 var STORE_CLASS_NAME_CONST = _createStore.STORE_CLASS_NAME;
 
@@ -1148,77 +1043,60 @@ function mergeStoreState(storeConfig) {
     return result;
 }
 
-var RebixfluxMergedStore = (function () {
-    function RebixfluxMergedStore(storeConfig) {
-        var _this = this;
+function RebixfluxMergedStore(storeConfig) {
 
-        _classCallCheck(this, RebixfluxMergedStore);
-
-        this.$$handleSubStoreChange = function (changedState, subStore) {
-            var storeConfig = _this.$$storeConfig;
-            _this.$$state = mergeStoreState(storeConfig);
-            _this.$$eventBus.emit(_createStore.EVENT_STORE_CHANGE, changedState, subStore, _this);
-        };
-
-        if (!storeConfig) {
-            throw new Error('NullPointer');
-        }
-        var that = this;
-        that.$$storeConfig = storeConfig;
-        that.$$ClassName = STORE_CLASS_NAME_CONST;
-        that.$$eventBus = new _utilsEventBus2['default']('MergedStoreEventBus');
-        that.$$state = mergeStoreState(storeConfig);
-        that.enableListener();
+    if (!storeConfig) {
+        throw new Error('NullPointer');
     }
 
-    _createClass(RebixfluxMergedStore, [{
-        key: 'enableListener',
-        value: function enableListener() {
-            var that = this;
-            var storeConfig = this.$$storeConfig;
-            (0, _utilsFunctions.forEach)(storeConfig, function (storeIns) {
-                if (storeIns && storeIns.$$ClassName === STORE_CLASS_NAME_CONST) {
-                    storeIns.addChangeListener(that.$$handleSubStoreChange);
-                }
-            });
-        }
-    }, {
-        key: 'disableListener',
-        value: function disableListener() {
-            var that = this;
-            var storeConfig = this.$$storeConfig;
-            (0, _utilsFunctions.forEach)(storeConfig, function (storeIns) {
-                if (storeIns && storeIns.$$ClassName === STORE_CLASS_NAME_CONST) {
-                    storeIns.removeChangeListener(that.$$handleSubStoreChange);
-                }
-            });
-        }
-    }, {
-        key: 'addChangeListener',
-        value: function addChangeListener(listener) {
-            this.$$eventBus.on(_createStore.EVENT_STORE_CHANGE, listener);
-        }
-    }, {
-        key: 'removeChangeListener',
-        value: function removeChangeListener(listener) {
-            this.$$eventBus.off(_createStore.EVENT_STORE_CHANGE, listener);
-        }
-    }, {
-        key: 'getState',
-        value: function getState() {
-            return this.$$state;
-        }
-    }]);
+    var that = this;
+    that.$$storeConfig = storeConfig;
+    that.$$ClassName = STORE_CLASS_NAME_CONST;
+    that.$$eventBus = new _utilsEventBus2['default']('MergedStoreEventBus');
+    that.$$state = mergeStoreState(storeConfig);
 
-    return RebixfluxMergedStore;
-})();
+    that.enableListener = function () {
+        (0, _utilsFunctions.forEach)(storeConfig, function (storeIns) {
+            if (storeIns && storeIns.$$ClassName === STORE_CLASS_NAME_CONST) {
+                storeIns.addChangeListener(that.$$handleSubStoreChange);
+            }
+        });
+    };
+
+    that.disableListener = function () {
+        (0, _utilsFunctions.forEach)(storeConfig, function (storeIns) {
+            if (storeIns && storeIns.$$ClassName === STORE_CLASS_NAME_CONST) {
+                storeIns.removeChangeListener(that.$$handleSubStoreChange);
+            }
+        });
+    };
+
+    that.$$handleSubStoreChange = function (changedState, subStore) {
+        that.$$state = mergeStoreState(storeConfig);
+        that.$$eventBus.emit(_createStore.EVENT_STORE_CHANGE, changedState, subStore, that);
+    };
+
+    that.addChangeListener = function (listener) {
+        that.$$eventBus.on(_createStore.EVENT_STORE_CHANGE, listener);
+    };
+
+    that.removeChangeListener = function (listener) {
+        that.$$eventBus.off(_createStore.EVENT_STORE_CHANGE, listener);
+    };
+
+    that.getState = function () {
+        return that.$$state;
+    };
+
+    that.enableListener();
+}
 
 function createMergedStore(storeConfig) {
     return new RebixfluxMergedStore(storeConfig);
 }
 
 /***/ }),
-/* 13 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1236,7 +1114,7 @@ function isPromise(p) {
 module.exports = exports['default'];
 
 /***/ }),
-/* 14 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1250,15 +1128,15 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _createStore = __webpack_require__(8);
+var _createStore = __webpack_require__(6);
 
-var _createMergedStore = __webpack_require__(12);
+var _createMergedStore = __webpack_require__(11);
 
 var _utilsShallowEqual = __webpack_require__(5);
 
 var _utilsShallowEqual2 = _interopRequireDefault(_utilsShallowEqual);
 
-var _createActions = __webpack_require__(11);
+var _createActions = __webpack_require__(10);
 
 var _utilsEventBus = __webpack_require__(2);
 
@@ -1268,7 +1146,7 @@ var _utilsActionDispatcher = __webpack_require__(1);
 
 var _utilsActionDispatcher2 = _interopRequireDefault(_utilsActionDispatcher);
 
-var _connect = __webpack_require__(10);
+var _connect = __webpack_require__(9);
 
 var connectFunctions = _interopRequireWildcard(_connect);
 
@@ -1284,11 +1162,7 @@ var _utilsArrayUtils = __webpack_require__(3);
 
 var ArrayUtils = _interopRequireWildcard(_utilsArrayUtils);
 
-var _componentsPureRenderComponent = __webpack_require__(7);
-
-var _componentsPureRenderComponent2 = _interopRequireDefault(_componentsPureRenderComponent);
-
-var createPureComponent = __webpack_require__(9);
+var _componentsPureRenderComponent = __webpack_require__(8);
 
 var exportObject = {
     dispatchCommand: _createActions.dispatchCommand,
@@ -1297,8 +1171,8 @@ var exportObject = {
     createActions: _createActions.createActions,
     createStore: _createStore.createStore,
     createMergedStore: _createMergedStore.createMergedStore,
-    PureRenderComponent: _componentsPureRenderComponent2['default'],
-    createPureComponent: createPureComponent,
+    PureRenderComponent: _componentsPureRenderComponent.PureRenderComponent,
+    createPureComponent: _componentsPureRenderComponent.createPureComponent,
     shallowEqual: _utilsShallowEqual2['default'],
     EventBus: _utilsEventBus2['default'],
     ActionDispatcher: _utilsActionDispatcher2['default']

@@ -15,57 +15,54 @@ function mergeStoreState(storeConfig) {
 }
 
 
-class RebixfluxMergedStore {
+function RebixfluxMergedStore(storeConfig) {
 
-    constructor(storeConfig) {
-        if (!storeConfig) {
-            throw new Error('NullPointer');
-        }
-        var that = this;
-        that.$$storeConfig = storeConfig;
-        that.$$ClassName = STORE_CLASS_NAME_CONST;
-        that.$$eventBus = new EventBus('MergedStoreEventBus');
-        that.$$state = mergeStoreState(storeConfig);
-        that.enableListener();
+    if (!storeConfig) {
+        throw new Error('NullPointer');
     }
 
-    enableListener() {
-        var that = this;
-        var storeConfig = this.$$storeConfig;
+    var that = this;
+    that.$$storeConfig = storeConfig;
+    that.$$ClassName = STORE_CLASS_NAME_CONST;
+    that.$$eventBus = new EventBus('MergedStoreEventBus');
+    that.$$state = mergeStoreState(storeConfig);
+
+
+    that.enableListener = function () {
         forEach(storeConfig, function (storeIns) {
             if (storeIns && storeIns.$$ClassName === STORE_CLASS_NAME_CONST) {
                 storeIns.addChangeListener(that.$$handleSubStoreChange);
             }
         });
-    }
+    };
 
-    disableListener() {
-        var that = this;
-        var storeConfig = this.$$storeConfig;
+    that.disableListener = function () {
         forEach(storeConfig, function (storeIns) {
             if (storeIns && storeIns.$$ClassName === STORE_CLASS_NAME_CONST) {
                 storeIns.removeChangeListener(that.$$handleSubStoreChange);
             }
         });
-    }
-
-    $$handleSubStoreChange = (changedState, subStore)=> {
-        var storeConfig = this.$$storeConfig;
-        this.$$state = mergeStoreState(storeConfig);
-        this.$$eventBus.emit(EVENT_STORE_CHANGE, changedState, subStore, this);
     };
 
-    addChangeListener(listener) {
-        this.$$eventBus.on(EVENT_STORE_CHANGE, listener);
-    }
+    that.$$handleSubStoreChange = function (changedState, subStore) {
+        that.$$state = mergeStoreState(storeConfig);
+        that.$$eventBus.emit(EVENT_STORE_CHANGE, changedState, subStore, that);
+    };
 
-    removeChangeListener(listener) {
-        this.$$eventBus.off(EVENT_STORE_CHANGE, listener);
-    }
+    that.addChangeListener = function (listener) {
+        that.$$eventBus.on(EVENT_STORE_CHANGE, listener);
+    };
 
-    getState() {
-        return this.$$state;
-    }
+    that.removeChangeListener = function (listener) {
+        that.$$eventBus.off(EVENT_STORE_CHANGE, listener);
+    };
+
+    that.getState = function () {
+        return that.$$state;
+    };
+
+
+    that.enableListener();
 
 }
 

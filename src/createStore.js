@@ -86,61 +86,60 @@ function buildGetMethod(that, storeConfig) {
     }
 }
 
-class RebixfluxStore {
 
-    constructor(storeConfig) {
-        if (!storeConfig) {
-            throw new Error('NullPointer');
-        }
-        var initialState = storeConfig.initialState || {};
-        var that = this;
-        that.$$storeConfig = storeConfig;
-        that.$$ClassName = STORE_CLASS_NAME;
-        that.$$eventBus = new EventBus('StoreEventBus');
-        that.$$state = extend({}, initialState);
-        that.enableListener();
-        buildGetMethod(that, storeConfig);
+
+
+
+function RebixfluxStoreClass(storeConfig) {
+
+
+    if (!storeConfig) {
+        throw new Error('NullPointer');
     }
 
-    enableListener() {
-        ActionDispatcher.on(ActionEvent, this.$$handleActionEvent);
-        ActionDispatcher.on(CommandEvent, this.$$handleCommandEvent);
-    }
+    var initialState = storeConfig.initialState || {};
+    var that = this;
+    that.$$storeConfig = storeConfig;
+    that.$$ClassName = STORE_CLASS_NAME;
+    that.$$eventBus = new EventBus('StoreEventBus');
+    that.$$state = extend({}, initialState);
 
-    disableListener() {
-        ActionDispatcher.off(ActionEvent, this.$$handleActionEvent);
-        ActionDispatcher.off(CommandEvent, this.$$handleCommandEvent);
-    }
 
-    /**
-     *
-     * @param actionEvent => {actionName,actionGroup,status,payload}
-     */
-    $$handleActionEvent = (actionEvent)=> {
-        handleActionOrCommandEvent(this, actionEvent, 'on');
+    that.$$handleActionEvent = function (actionEvent) {
+        handleActionOrCommandEvent(that, actionEvent, 'on');
+    };
+    that.$$handleCommandEvent = function (commandEvent) {
+        handleActionOrCommandEvent(that, commandEvent, 'onCmd');
     };
 
-    $$handleCommandEvent = (commandEvent)=> {
-        handleActionOrCommandEvent(this, commandEvent, 'onCmd');
+    that.getState = function () {
+        return that.$$state;
     };
 
-    addChangeListener(listener) {
-        this.$$eventBus.on(EVENT_STORE_CHANGE, listener);
-    }
+    that.addChangeListener = function (listener) {
+        that.$$eventBus.on(EVENT_STORE_CHANGE, listener);
+    };
 
-    removeChangeListener(listener) {
-        this.$$eventBus.off(EVENT_STORE_CHANGE, listener);
-    }
+    that.removeChangeListener = function (listener) {
+        that.$$eventBus.off(EVENT_STORE_CHANGE, listener);
+    };
 
-    getState() {
-        return this.$$state;
-    }
+    that.enableListener = function () {
+        ActionDispatcher.on(ActionEvent, that.$$handleActionEvent);
+        ActionDispatcher.on(CommandEvent, that.$$handleCommandEvent);
+    };
+    that.disableListener = function () {
+        ActionDispatcher.off(ActionEvent, that.$$handleActionEvent);
+        ActionDispatcher.off(CommandEvent, that.$$handleCommandEvent);
+    };
 
+    buildGetMethod(that, storeConfig);
+    that.enableListener();
 }
 
 
 export function createStore(storeConfig) {
-    return new RebixfluxStore(storeConfig);
+    return new RebixfluxStoreClass(storeConfig);
 }
 
 
