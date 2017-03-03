@@ -5,13 +5,6 @@ function shallowCompare(component, nextProps, nextState) {
     return !shallowEqual(component.props, nextProps) || !shallowEqual(component.state, nextState);
 }
 
-// export default class PureRenderComponent extends React.Component {
-//     shouldComponentUpdate(nextProps, nextState) {
-//         var isOk =  shallowCompare(this, nextProps, nextState);
-//         return isOk;
-//     }
-// }
-
 
 export function createPureComponent(renderFunction) {
     return React.createClass({
@@ -29,6 +22,6 @@ export function createPureComponent(renderFunction) {
     });
 }
 
-export default createPureComponent();
+export const PureRenderComponent = createPureComponent();
 
 

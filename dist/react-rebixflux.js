@@ -529,7 +529,8 @@ function createPureComponent(renderFunction) {
     });
 }
 
-exports['default'] = createPureComponent();
+var PureRenderComponent = createPureComponent();
+exports.PureRenderComponent = PureRenderComponent;
 
 /***/ }),
 /* 9 */
@@ -1163,8 +1164,6 @@ var ArrayUtils = _interopRequireWildcard(_utilsArrayUtils);
 
 var _componentsPureRenderComponent = __webpack_require__(8);
 
-var _componentsPureRenderComponent2 = _interopRequireDefault(_componentsPureRenderComponent);
-
 var exportObject = {
     dispatchCommand: _createActions.dispatchCommand,
     createCommand: _createActions.createCommand,
@@ -1172,7 +1171,7 @@ var exportObject = {
     createActions: _createActions.createActions,
     createStore: _createStore.createStore,
     createMergedStore: _createMergedStore.createMergedStore,
-    PureRenderComponent: _componentsPureRenderComponent2['default'],
+    PureRenderComponent: _componentsPureRenderComponent.PureRenderComponent,
     createPureComponent: _componentsPureRenderComponent.createPureComponent,
     shallowEqual: _utilsShallowEqual2['default'],
     EventBus: _utilsEventBus2['default'],
