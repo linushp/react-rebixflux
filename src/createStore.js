@@ -39,22 +39,11 @@ function getReducer(storeConfig, actionEvent, prefix) {
 function handleActionOrCommandEvent(that, actionEvent, prefix) {
     var reducer = getReducer(that.$$storeConfig, actionEvent, prefix);
     if (reducer) {
-        var emitChange = function (changedState) {
-            if (!changedState) {
-                return;
-            }
-
-            that.$$state = extend({}, that.$$state, changedState);
-            that.$$eventBus.emit(EVENT_STORE_CHANGE, changedState, that);
-        };
-
-        var result = reducer(that.$$state, actionEvent, emitChange);
-
-        if (result) {
+        var result = reducer(that.$$state, actionEvent);
+        if (result && that.$$state !== result) {
             that.$$state = result;
             that.$$eventBus.emit(EVENT_STORE_CHANGE, {}, that);
         }
-
     }
 }
 
@@ -102,7 +91,7 @@ function RebixfluxStoreClass(storeConfig) {
     that.$$storeConfig = storeConfig;
     that.$$ClassName = STORE_CLASS_NAME;
     that.$$eventBus = new EventBus('StoreEventBus');
-    that.$$state = extend({}, initialState);
+    that.$$state = initialState;//extend({}, initialState);
 
 
     that.$$handleActionEvent = function (actionEvent) {
