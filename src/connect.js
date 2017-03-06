@@ -68,13 +68,23 @@ const DEFAULT_OPTIONS = {
     debounce: CONST_FALSE,
     contextTypes: {},
     exposeStore: DEFAULT_STORE_CONTEXT_NAME,
-    requireStore: DEFAULT_STORE_CONTEXT_NAME
+    requireStore: DEFAULT_STORE_CONTEXT_NAME,
+    componentName:null
 };
 
 var USING_DEFAULT_OPTIONS = DEFAULT_OPTIONS;
 export function setConnectDefaultOptions(defaultOptions) {
     USING_DEFAULT_OPTIONS = extend({}, DEFAULT_OPTIONS, defaultOptions);
 }
+
+
+function getStoreInsAttr(StoreIns) {
+    var isArrayStoreIns = isArray(StoreIns);
+    var storeInsArray = isArrayStoreIns ? StoreIns : [StoreIns];
+    var storeInsArrayLength = storeInsArray.length;
+    return {isArrayStoreIns,storeInsArray,storeInsArrayLength};
+}
+
 
 /**
  * demo：
@@ -95,85 +105,83 @@ export function connect(BaseComponent, p1, p2, p3) {
     var StoreIns;
     var mapStateToProps;
     var options;
-
-    var isArrayStoreIns = false;
-    var storeInsArray = [];
-    var storeInsArrayLength = 0;
     var isNoStoreParam = false; //标记是否省略了StoreIns参数
 
     //省略第StoreIns参数.for demo:[2,3,4,5]
     if (isFunction(p1) || !p1) {
-
+        isNoStoreParam = true;
         mapStateToProps = p1;
         options = p2;
-
-        isNoStoreParam = true;
-        isArrayStoreIns = false;
-        storeInsArray = [];
-        storeInsArrayLength = 0;
     } else {
-
+        isNoStoreParam = false;
         StoreIns = p1;
         mapStateToProps = p2;
         options = p3;
-
-        isArrayStoreIns = isArray(StoreIns);
-        storeInsArray = isArrayStoreIns ? StoreIns : [StoreIns];
-        storeInsArrayLength = storeInsArray.length;
     }
 
 
-    options = extend(USING_DEFAULT_OPTIONS, options || {});
-    var {pure, debounce, contextTypes, exposeStore, requireStore} = options;
+    options = extend({}, USING_DEFAULT_OPTIONS, options || {});
+    var {pure, debounce, contextTypes, exposeStore, requireStore,componentName} = options;
 
 
-    class StateProviderComponent extends React.Component {
+    var StateProviderComponent = {
 
 
-        constructor(props, context) {
-            super(props, context);
-            this.state = {};
+        getInitialState() {
+
+            // this.state = {};
             this.stateInited = CONST_FALSE;
             this.stateDebounceHandler = 0; //timeoutHandler
             this.stateWaiting = {};
-
             this.haveOwnPropsChanged = CONST_TRUE;
             this.hasStoreStateChanged = CONST_TRUE;
-        }
+
+            return {};
+        },
 
         shouldComponentUpdate() {
-            if (!isNoStoreParam) {
+            if (!isNoStoreParam) { //有参数
                 return !pure || this.haveOwnPropsChanged || this.hasStoreStateChanged
             }
             return true;
-        }
+        },
 
 
         componentWillReceiveProps(nextProps) {
             if (!pure || !shallowEqual(nextProps, this.props)) {
                 this.haveOwnPropsChanged = CONST_TRUE;
             }
-        }
+        },
 
         componentDidMount() {
             var that = this;
 
             ActionDispatcher.on(CommandEvent, that.handleCommand);
 
-            if (!isNoStoreParam) {
+            if (isNoStoreParam) {
+
+
+
+
+                //TODO
+            }else {
+                var {isArrayStoreIns,storeInsArray,storeInsArrayLength} = getStoreInsAttr(StoreIns);
                 forEach(storeInsArray, function (StoreIns0) {
                     StoreIns0.addChangeListener(that.handleAllStoreChange);
                 });
                 that.handleAllStoreChange();
             }
-        }
+        },
 
         componentWillUnmount() {
             var that = this;
 
             ActionDispatcher.off(CommandEvent, that.handleCommand);
 
-            if (!isNoStoreParam) {
+            if (isNoStoreParam) {
+                //TODO
+            }else {
+                var {isArrayStoreIns,storeInsArray,storeInsArrayLength} = getStoreInsAttr(StoreIns);
                 forEach(storeInsArray, function (StoreIns0) {
                     StoreIns0.removeChangeListener(that.handleAllStoreChange);
                 });
@@ -183,11 +191,11 @@ export function connect(BaseComponent, p1, p2, p3) {
                 clearTimeout(that.stateDebounceHandler);
                 that.stateDebounceHandler = CONST_NULL;
             }
-        }
+        },
 
 
         //View层也可以直接接收Command的消息.
-        handleCommand = ({actionName, actionGroup, payload, status})=> {
+        handleCommand({actionName, actionGroup, payload, status}){
             var commandHandlerName = "onCmd" + toFirstCharUpper(actionName);// onCmdXXX
             var componentIns = this.refs['BaseComponentIns'];
             if (componentIns) {
@@ -196,24 +204,17 @@ export function connect(BaseComponent, p1, p2, p3) {
                     commandHandler(payload, status, actionName, actionGroup);
                 }
             }
-        };
+        },
 
 
-        handleAllStoreChange = (changedState, StoreInsSource)=> {
+        handleAllStoreChange(changedState, StoreInsSource){
             var that = this;
 
             var stateMerge = {};
-            var stateTmp;
+            var {isArrayStoreIns,storeInsArray,storeInsArrayLength} = getStoreInsAttr(StoreIns);
             forEach(storeInsArray, function (StoreIns0, index) {
-                if (StoreInsSource) {
-                    if (StoreIns0 === StoreInsSource) {
-                        stateTmp = StoreIns0.getState();
-                        stateMerge[STATE_ITEM_NAME + index] = stateTmp;
-                    }
-                } else {
-                    stateTmp = StoreIns0.getState();
-                    stateMerge[STATE_ITEM_NAME + index] = stateTmp;
-                }
+                var stateTmp = StoreIns0.getState();
+                stateMerge[STATE_ITEM_NAME + index] = stateTmp;
             });
 
             that.stateInited = CONST_TRUE;
@@ -226,10 +227,11 @@ export function connect(BaseComponent, p1, p2, p3) {
                 that.setState(stateMerge);
             }
 
-        };
+        },
 
 
         render() {
+
             var that = this;
             if (!that.stateInited && !isNoStoreParam) {
                 return CONST_NULL;
@@ -249,13 +251,12 @@ export function connect(BaseComponent, p1, p2, p3) {
                 if (isNoStoreParam) {
 
                     //如果没有Store作为参数,使用Context上面存储的Store去Mapper
-
                     var contextState = context[requireStore] || {};
                     mapperResult = mapStateToProps(contextState, props, context, connectState, that);
                 } else {
 
                     //如果有Store作为参数,使用Store去Mapper
-
+                    var {isArrayStoreIns,storeInsArray,storeInsArrayLength} = getStoreInsAttr(StoreIns);
                     var stateParamForCalc = getStateParam(connectState, isArrayStoreIns, storeInsArrayLength);
                     mapperResult = mapStateToProps(stateParamForCalc, props, context, connectState, that);
                 }
@@ -268,57 +269,32 @@ export function connect(BaseComponent, p1, p2, p3) {
             return (<BaseComponent {...props} ref="BaseComponentIns"/>);
         }
 
-        getChildContext() {
+    };
+
+    if (!isNoStoreParam) {
+
+        StateProviderComponent.getChildContext = function () {
+            var {isArrayStoreIns, storeInsArray, storeInsArrayLength} = getStoreInsAttr(StoreIns);
             var stateParamForCalc = getStateParam(this.state, isArrayStoreIns, storeInsArrayLength);
-            return {[exposeStore]: stateParamForCalc}
-        }
+            return {
+                [exposeStore + '_StoreIns']: StoreIns,
+                [exposeStore]: stateParamForCalc
+            }
+        };
+
+        StateProviderComponent.childContextTypes = {
+            [exposeStore]: storeShape,
+            [exposeStore + '_StoreIns']: storeShape
+        };
 
     }
 
-    StateProviderComponent.childContextTypes = {
-        [exposeStore]: storeShape
-    };
-
     StateProviderComponent.contextTypes = extend({
         [requireStore]: storeShape,
+        [requireStore + '_StoreIns']: storeShape,
         router: propTypeAny
     }, toContextTypes(contextTypes));
 
-    return StateProviderComponent;
+
+    return React.createClass(StateProviderComponent);
 }
-
-
-// export function connectContext(BaseComponent, mapStateToProps) {
-//     class  ContextComponent extends React.Component {
-//
-//         render() {
-//             var that = this;
-//             var props = that.props || {};
-//
-//             if (mapStateToProps) {
-//                 var context = that.context || {};
-//                 var contextState = context.rebixfluxState || {};
-//                 props = extend({}, props, mapStateToProps(contextState, props));
-//             }
-//
-//             return (<BaseComponent {...props} />);
-//         }
-//     }
-//
-//     ContextComponent.contextTypes = {
-//         rebixfluxState: storeShape
-//     };
-//
-//     ContextComponent.propTypes = {
-//         rebixfluxState: storeShape
-//     };
-//
-//     return ContextComponent;
-// }
-//
-// export function connect(BaseComponent, p1, p2, p3) {
-//     if (isFunction(p1)) {
-//         return connectContext(BaseComponent, p1);
-//     }
-//     return connectStore(BaseComponent, p1, p2, p3)
-// }

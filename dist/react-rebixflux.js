@@ -544,20 +544,12 @@ Object.defineProperty(exports, '__esModule', {
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
 exports.setConnectDefaultOptions = setConnectDefaultOptions;
 exports.connect = connect;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var _react = __webpack_require__(7);
 
@@ -635,7 +627,8 @@ var DEFAULT_OPTIONS = {
     debounce: CONST_FALSE,
     contextTypes: {},
     exposeStore: DEFAULT_STORE_CONTEXT_NAME,
-    requireStore: DEFAULT_STORE_CONTEXT_NAME
+    requireStore: DEFAULT_STORE_CONTEXT_NAME,
+    componentName: null
 };
 
 var USING_DEFAULT_OPTIONS = DEFAULT_OPTIONS;
@@ -699,211 +692,160 @@ function connect(BaseComponent, p1, p2, p3) {
     var contextTypes = _options.contextTypes;
     var exposeStore = _options.exposeStore;
     var requireStore = _options.requireStore;
+    var componentName = _options.componentName;
 
-    var StateProviderComponent = (function (_React$Component) {
-        _inherits(StateProviderComponent, _React$Component);
+    var StateProviderComponent = {
 
-        function StateProviderComponent(props, context) {
-            var _this = this;
+        getInitialState: function getInitialState() {
 
-            _classCallCheck(this, StateProviderComponent);
-
-            _get(Object.getPrototypeOf(StateProviderComponent.prototype), 'constructor', this).call(this, props, context);
-
-            this.handleCommand = function (_ref2) {
-                var actionName = _ref2.actionName;
-                var actionGroup = _ref2.actionGroup;
-                var payload = _ref2.payload;
-                var status = _ref2.status;
-
-                var commandHandlerName = "onCmd" + (0, _utilsStringUtils.toFirstCharUpper)(actionName); // onCmdXXX
-                var componentIns = _this.refs['BaseComponentIns'];
-                if (componentIns) {
-                    var commandHandler = componentIns[commandHandlerName];
-                    if (commandHandler) {
-                        commandHandler(payload, status, actionName, actionGroup);
-                    }
-                }
-            };
-
-            this.handleAllStoreChange = function (changedState, StoreInsSource) {
-                var that = _this;
-
-                var stateMerge = {};
-                var stateTmp;
-                (0, _utilsFunctions.forEach)(storeInsArray, function (StoreIns0, index) {
-                    if (StoreInsSource) {
-                        if (StoreIns0 === StoreInsSource) {
-                            stateTmp = StoreIns0.getState();
-                            stateMerge[STATE_ITEM_NAME + index] = stateTmp;
-                        }
-                    } else {
-                        stateTmp = StoreIns0.getState();
-                        stateMerge[STATE_ITEM_NAME + index] = stateTmp;
-                    }
-                });
-
-                that.stateInited = CONST_TRUE;
-
-                if (debounce) {
-                    //防抖
-                    setStateDebounce(that, stateMerge);
-                } else {
-                    that.hasStoreStateChanged = CONST_TRUE;
-                    that.setState(stateMerge);
-                }
-            };
-
-            this.state = {};
+            // this.state = {};
             this.stateInited = CONST_FALSE;
             this.stateDebounceHandler = 0; //timeoutHandler
             this.stateWaiting = {};
-
             this.haveOwnPropsChanged = CONST_TRUE;
             this.hasStoreStateChanged = CONST_TRUE;
+
+            return {};
+        },
+
+        shouldComponentUpdate: function shouldComponentUpdate() {
+            if (!isNoStoreParam) {
+                //有参数
+                return !pure || this.haveOwnPropsChanged || this.hasStoreStateChanged;
+            }
+            return true;
+        },
+
+        componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
+            if (!pure || !(0, _utilsShallowEqual2['default'])(nextProps, this.props)) {
+                this.haveOwnPropsChanged = CONST_TRUE;
+            }
+        },
+
+        componentDidMount: function componentDidMount() {
+            var that = this;
+
+            _utilsActionDispatcher2['default'].on(_utilsActionDispatcher.CommandEvent, that.handleCommand);
+
+            if (!isNoStoreParam) {
+                (0, _utilsFunctions.forEach)(storeInsArray, function (StoreIns0) {
+                    StoreIns0.addChangeListener(that.handleAllStoreChange);
+                });
+                that.handleAllStoreChange();
+            }
+        },
+
+        componentWillUnmount: function componentWillUnmount() {
+            var that = this;
+
+            _utilsActionDispatcher2['default'].off(_utilsActionDispatcher.CommandEvent, that.handleCommand);
+
+            if (!isNoStoreParam) {
+                (0, _utilsFunctions.forEach)(storeInsArray, function (StoreIns0) {
+                    StoreIns0.removeChangeListener(that.handleAllStoreChange);
+                });
+            }
+
+            if (that.stateDebounceHandler) {
+                clearTimeout(that.stateDebounceHandler);
+                that.stateDebounceHandler = CONST_NULL;
+            }
+        },
+
+        //View层也可以直接接收Command的消息.
+        handleCommand: function handleCommand(_ref2) {
+            var actionName = _ref2.actionName;
+            var actionGroup = _ref2.actionGroup;
+            var payload = _ref2.payload;
+            var status = _ref2.status;
+
+            var commandHandlerName = "onCmd" + (0, _utilsStringUtils.toFirstCharUpper)(actionName); // onCmdXXX
+            var componentIns = this.refs['BaseComponentIns'];
+            if (componentIns) {
+                var commandHandler = componentIns[commandHandlerName];
+                if (commandHandler) {
+                    commandHandler(payload, status, actionName, actionGroup);
+                }
+            }
+        },
+
+        handleAllStoreChange: function handleAllStoreChange(changedState, StoreInsSource) {
+            var that = this;
+
+            var stateMerge = {};
+            (0, _utilsFunctions.forEach)(storeInsArray, function (StoreIns0, index) {
+                var stateTmp = StoreIns0.getState();
+                stateMerge[STATE_ITEM_NAME + index] = stateTmp;
+            });
+
+            that.stateInited = CONST_TRUE;
+
+            if (debounce) {
+                //防抖
+                setStateDebounce(that, stateMerge);
+            } else {
+                that.hasStoreStateChanged = CONST_TRUE;
+                that.setState(stateMerge);
+            }
+        },
+
+        render: function render() {
+            var componentName0 = componentName;
+
+            var that = this;
+            if (!that.stateInited && !isNoStoreParam) {
+                return CONST_NULL;
+            }
+
+            that.haveOwnPropsChanged = CONST_FALSE;
+            that.hasStoreStateChanged = CONST_FALSE;
+
+            var props = (0, _utilsFunctions.extend)({}, that.props || {});
+
+            if (mapStateToProps) {
+
+                var context = that.context || {};
+                var connectState = that.state;
+                var mapperResult = null;
+
+                if (isNoStoreParam) {
+
+                    //如果没有Store作为参数,使用Context上面存储的Store去Mapper
+
+                    var contextState = context[requireStore] || {};
+                    mapperResult = mapStateToProps(contextState, props, context, connectState, that);
+                } else {
+
+                    //如果有Store作为参数,使用Store去Mapper
+
+                    var stateParamForCalc = getStateParam(connectState, isArrayStoreIns, storeInsArrayLength);
+                    mapperResult = mapStateToProps(stateParamForCalc, props, context, connectState, that);
+                }
+
+                if (mapperResult) {
+                    props = (0, _utilsFunctions.extend)(props, mapperResult);
+                }
+            }
+
+            return _react2['default'].createElement(BaseComponent, _extends({}, props, { ref: 'BaseComponentIns' }));
         }
 
-        _createClass(StateProviderComponent, [{
-            key: 'shouldComponentUpdate',
-            value: function shouldComponentUpdate() {
-                if (!isNoStoreParam) {
-                    return !pure || this.haveOwnPropsChanged || this.hasStoreStateChanged;
-                }
-                return true;
-            }
-        }, {
-            key: 'componentWillReceiveProps',
-            value: function componentWillReceiveProps(nextProps) {
-                if (!pure || !(0, _utilsShallowEqual2['default'])(nextProps, this.props)) {
-                    this.haveOwnPropsChanged = CONST_TRUE;
-                }
-            }
-        }, {
-            key: 'componentDidMount',
-            value: function componentDidMount() {
-                var that = this;
+    };
 
-                _utilsActionDispatcher2['default'].on(_utilsActionDispatcher.CommandEvent, that.handleCommand);
+    if (!isNoStoreParam) {
 
-                if (!isNoStoreParam) {
-                    (0, _utilsFunctions.forEach)(storeInsArray, function (StoreIns0) {
-                        StoreIns0.addChangeListener(that.handleAllStoreChange);
-                    });
-                    that.handleAllStoreChange();
-                }
-            }
-        }, {
-            key: 'componentWillUnmount',
-            value: function componentWillUnmount() {
-                var that = this;
+        StateProviderComponent.getChildContext = function () {
+            var stateParamForCalc = getStateParam(this.state, isArrayStoreIns, storeInsArrayLength);
+            return _defineProperty({}, exposeStore, stateParamForCalc);
+        };
 
-                _utilsActionDispatcher2['default'].off(_utilsActionDispatcher.CommandEvent, that.handleCommand);
-
-                if (!isNoStoreParam) {
-                    (0, _utilsFunctions.forEach)(storeInsArray, function (StoreIns0) {
-                        StoreIns0.removeChangeListener(that.handleAllStoreChange);
-                    });
-                }
-
-                if (that.stateDebounceHandler) {
-                    clearTimeout(that.stateDebounceHandler);
-                    that.stateDebounceHandler = CONST_NULL;
-                }
-            }
-
-            //View层也可以直接接收Command的消息.
-        }, {
-            key: 'render',
-            value: function render() {
-                var that = this;
-                if (!that.stateInited && !isNoStoreParam) {
-                    return CONST_NULL;
-                }
-
-                that.haveOwnPropsChanged = CONST_FALSE;
-                that.hasStoreStateChanged = CONST_FALSE;
-
-                var props = (0, _utilsFunctions.extend)({}, that.props || {});
-
-                if (mapStateToProps) {
-
-                    var context = that.context || {};
-                    var connectState = that.state;
-                    var mapperResult = null;
-
-                    if (isNoStoreParam) {
-
-                        //如果没有Store作为参数,使用Context上面存储的Store去Mapper
-
-                        var contextState = context[requireStore] || {};
-                        mapperResult = mapStateToProps(contextState, props, context, connectState, that);
-                    } else {
-
-                        //如果有Store作为参数,使用Store去Mapper
-
-                        var stateParamForCalc = getStateParam(connectState, isArrayStoreIns, storeInsArrayLength);
-                        mapperResult = mapStateToProps(stateParamForCalc, props, context, connectState, that);
-                    }
-
-                    if (mapperResult) {
-                        props = (0, _utilsFunctions.extend)(props, mapperResult);
-                    }
-                }
-
-                return _react2['default'].createElement(BaseComponent, _extends({}, props, { ref: 'BaseComponentIns' }));
-            }
-        }, {
-            key: 'getChildContext',
-            value: function getChildContext() {
-                var stateParamForCalc = getStateParam(this.state, isArrayStoreIns, storeInsArrayLength);
-                return _defineProperty({}, exposeStore, stateParamForCalc);
-            }
-        }]);
-
-        return StateProviderComponent;
-    })(_react2['default'].Component);
-
-    StateProviderComponent.childContextTypes = _defineProperty({}, exposeStore, storeShape);
+        StateProviderComponent.childContextTypes = _defineProperty({}, exposeStore, storeShape);
+    }
 
     StateProviderComponent.contextTypes = (0, _utilsFunctions.extend)((_extend = {}, _defineProperty(_extend, requireStore, storeShape), _defineProperty(_extend, 'router', propTypeAny), _extend), toContextTypes(contextTypes));
 
-    return StateProviderComponent;
+    return _react2['default'].createClass(StateProviderComponent);
 }
-
-// export function connectContext(BaseComponent, mapStateToProps) {
-//     class  ContextComponent extends React.Component {
-//
-//         render() {
-//             var that = this;
-//             var props = that.props || {};
-//
-//             if (mapStateToProps) {
-//                 var context = that.context || {};
-//                 var contextState = context.rebixfluxState || {};
-//                 props = extend({}, props, mapStateToProps(contextState, props));
-//             }
-//
-//             return (<BaseComponent {...props} />);
-//         }
-//     }
-//
-//     ContextComponent.contextTypes = {
-//         rebixfluxState: storeShape
-//     };
-//
-//     ContextComponent.propTypes = {
-//         rebixfluxState: storeShape
-//     };
-//
-//     return ContextComponent;
-// }
-//
-// export function connect(BaseComponent, p1, p2, p3) {
-//     if (isFunction(p1)) {
-//         return connectContext(BaseComponent, p1);
-//     }
-//     return connectStore(BaseComponent, p1, p2, p3)
-// }
 
 /***/ }),
 /* 10 */
