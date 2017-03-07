@@ -538,14 +538,7 @@ exports.PureRenderComponent = PureRenderComponent;
 "use strict";
 
 
-Object.defineProperty(exports, '__esModule', {
-    value: true
-});
-
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-exports.setConnectDefaultOptions = setConnectDefaultOptions;
-exports.connect = connect;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -631,20 +624,18 @@ var DEFAULT_OPTIONS = {
     componentName: null
 };
 
-var USING_DEFAULT_OPTIONS = DEFAULT_OPTIONS;
-
+var CONNECT_DEFAULT_OPTIONS = DEFAULT_OPTIONS;
 function setConnectDefaultOptions(defaultOptions) {
-    USING_DEFAULT_OPTIONS = (0, _utilsFunctions.extend)({}, DEFAULT_OPTIONS, defaultOptions);
+    CONNECT_DEFAULT_OPTIONS = (0, _utilsFunctions.extend)({}, DEFAULT_OPTIONS, defaultOptions);
 }
 
 function getParamStoreInstanceFromContext(connectComponentInstance) {
-    var options = connectComponentInstance.connectOptions;
-    var requireStore = options.requireStore;
-
-    var requireStoreInstanceName = requireStore + '_StoreInstance';
     var connectComponentInstanceContext = connectComponentInstance.context;
     if (connectComponentInstanceContext) {
-        var requireStoreInstance = connectComponentInstanceContext[requireStoreInstanceName];
+        var options = connectComponentInstance.connectOptions;
+        var requireStore = options.requireStore;
+
+        var requireStoreInstance = connectComponentInstanceContext[requireStore];
         return requireStoreInstance;
     }
     return null;
@@ -667,6 +658,8 @@ function getStoreAttribute(paramStoreInstance, connectComponentInstance) {
     return { isArrayStoreIns: isArrayStoreIns, storeInsArray: storeInsArray, storeInsArrayLength: storeInsArrayLength };
 }
 
+var connectedComponentIndex = 0;
+
 /**
  * demo：
  * 1. connect(BaseComponent,Store,mapStateToProps,options)
@@ -681,7 +674,6 @@ function getStoreAttribute(paramStoreInstance, connectComponentInstance) {
  * @param p3
  * @returns {StateProviderComponent}
  */
-
 function connect(BaseComponent, p1, p2, p3) {
     var _extend;
 
@@ -692,6 +684,7 @@ function connect(BaseComponent, p1, p2, p3) {
 
     //省略第StoreIns参数.for demo:[2,3,4,5]
     if ((0, _utilsFunctions.isFunction)(p1) || !p1) {
+
         isWithStoreParam = false;
         mapStateToProps = p1;
         options = p2;
@@ -702,7 +695,7 @@ function connect(BaseComponent, p1, p2, p3) {
         options = p3;
     }
 
-    options = (0, _utilsFunctions.extend)({}, USING_DEFAULT_OPTIONS, options || {});
+    options = (0, _utilsFunctions.extend)({}, CONNECT_DEFAULT_OPTIONS, options || {});
     var _options = options;
     var pure = _options.pure;
     var debounce = _options.debounce;
@@ -711,26 +704,26 @@ function connect(BaseComponent, p1, p2, p3) {
     var requireStore = _options.requireStore;
     var componentName = _options.componentName;
 
+    componentName = componentName || "ConnectedComponent" + connectedComponentIndex++;
+
     var StateProviderComponent = {
 
-        getInitialState: function getInitialState() {
+        displayName: componentName,
 
+        getInitialState: function getInitialState() {
             // this.state = {};
-            this.stateInited = CONST_FALSE;
-            this.stateDebounceHandler = 0; //timeoutHandler
-            this.stateWaiting = {};
-            this.haveOwnPropsChanged = CONST_TRUE;
-            this.hasStoreStateChanged = CONST_TRUE;
-            this.connectOptions = options;
+            var that = this;
+            that.stateInited = CONST_FALSE;
+            that.stateDebounceHandler = 0; //timeoutHandler
+            that.stateWaiting = {};
+            that.haveOwnPropsChanged = CONST_TRUE;
+            that.hasStoreStateChanged = CONST_TRUE;
+            that.connectOptions = options;
             return {};
         },
 
         shouldComponentUpdate: function shouldComponentUpdate() {
-            if (isWithStoreParam) {
-                //有参数
-                return !pure || this.haveOwnPropsChanged || this.hasStoreStateChanged;
-            }
-            return true;
+            return !pure || this.haveOwnPropsChanged || this.hasStoreStateChanged;
         },
 
         componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
@@ -789,7 +782,8 @@ function connect(BaseComponent, p1, p2, p3) {
             }
         },
 
-        handleAllStoreChange: function handleAllStoreChange(changedState, StoreInsSource) {
+        handleAllStoreChange: function handleAllStoreChange() {
+
             var that = this;
 
             var stateMerge = {};
@@ -817,7 +811,7 @@ function connect(BaseComponent, p1, p2, p3) {
         render: function render() {
 
             var that = this;
-            if (!that.stateInited && isWithStoreParam) {
+            if (!that.stateInited) {
                 return CONST_NULL;
             }
 
@@ -830,24 +824,16 @@ function connect(BaseComponent, p1, p2, p3) {
 
                 var context = that.context || {};
                 var connectState = that.state;
-                var mapperResult = null;
 
-                if (isWithStoreParam) {
+                //如果有Store作为参数,使用Store去Mapper
 
-                    //如果有Store作为参数,使用Store去Mapper
+                var _getStoreAttribute4 = getStoreAttribute(paramStoreInstance, that);
 
-                    var _getStoreAttribute4 = getStoreAttribute(paramStoreInstance, that);
+                var isArrayStoreIns = _getStoreAttribute4.isArrayStoreIns;
+                var storeInsArrayLength = _getStoreAttribute4.storeInsArrayLength;
 
-                    var isArrayStoreIns = _getStoreAttribute4.isArrayStoreIns;
-                    var storeInsArrayLength = _getStoreAttribute4.storeInsArrayLength;
-
-                    var stateParamForCalc = getStateParam(connectState, isArrayStoreIns, storeInsArrayLength);
-                    mapperResult = mapStateToProps(stateParamForCalc, props, context, connectState, that);
-                } else {
-                    //如果没有Store作为参数,使用Context上面存储的Store去Mapper
-                    var contextState = context[requireStore] || {};
-                    mapperResult = mapStateToProps(contextState, props, context, connectState, that);
-                }
+                var stateParamForCalc = getStateParam(connectState, isArrayStoreIns, storeInsArrayLength);
+                var mapperResult = mapStateToProps(stateParamForCalc, props, context, connectState, that);
 
                 if (mapperResult) {
                     props = (0, _utilsFunctions.extend)(props, mapperResult);
@@ -860,27 +846,21 @@ function connect(BaseComponent, p1, p2, p3) {
     };
 
     if (isWithStoreParam) {
-        var _StateProviderComponent$childContextTypes;
-
         StateProviderComponent.getChildContext = function () {
-            var _ref;
-
-            var _getStoreAttribute5 = getStoreAttribute(paramStoreInstance, this);
-
-            var isArrayStoreIns = _getStoreAttribute5.isArrayStoreIns;
-            var storeInsArrayLength = _getStoreAttribute5.storeInsArrayLength;
-
-            var stateParamForCalc = getStateParam(this.state, isArrayStoreIns, storeInsArrayLength);
-            return _ref = {}, _defineProperty(_ref, exposeStore + '_StoreInstance', paramStoreInstance), _defineProperty(_ref, exposeStore, stateParamForCalc), _ref;
+            return _defineProperty({}, exposeStore, paramStoreInstance);
         };
-
-        StateProviderComponent.childContextTypes = (_StateProviderComponent$childContextTypes = {}, _defineProperty(_StateProviderComponent$childContextTypes, exposeStore, storeShape), _defineProperty(_StateProviderComponent$childContextTypes, exposeStore + '_StoreInstance', storeShape), _StateProviderComponent$childContextTypes);
+        StateProviderComponent.childContextTypes = _defineProperty({}, exposeStore, storeShape);
     }
 
-    StateProviderComponent.contextTypes = (0, _utilsFunctions.extend)((_extend = {}, _defineProperty(_extend, requireStore, storeShape), _defineProperty(_extend, requireStore + '_StoreInstance', storeShape), _defineProperty(_extend, 'router', propTypeAny), _extend), toContextTypes(contextTypes));
+    StateProviderComponent.contextTypes = (0, _utilsFunctions.extend)((_extend = {}, _defineProperty(_extend, requireStore, storeShape), _defineProperty(_extend, 'router', propTypeAny), _extend), toContextTypes(contextTypes));
 
     return _react2['default'].createClass(StateProviderComponent);
 }
+
+module.exports = {
+    connect: connect,
+    setConnectDefaultOptions: setConnectDefaultOptions
+};
 
 /***/ }),
 /* 10 */
@@ -1114,17 +1094,9 @@ var _utilsShallowEqual2 = _interopRequireDefault(_utilsShallowEqual);
 
 var _createActions = __webpack_require__(10);
 
-var _utilsEventBus = __webpack_require__(2);
-
-var _utilsEventBus2 = _interopRequireDefault(_utilsEventBus);
-
 var _utilsActionDispatcher = __webpack_require__(1);
 
 var _utilsActionDispatcher2 = _interopRequireDefault(_utilsActionDispatcher);
-
-var _connect = __webpack_require__(9);
-
-var connectFunctions = _interopRequireWildcard(_connect);
 
 var _utilsFunctions = __webpack_require__(0);
 
@@ -1140,6 +1112,10 @@ var ArrayUtils = _interopRequireWildcard(_utilsArrayUtils);
 
 var _componentsPureRenderComponent = __webpack_require__(8);
 
+var EventBus = __webpack_require__(2);
+
+var connectFunctions = __webpack_require__(9);
+
 var exportObject = {
     dispatchCommand: _createActions.dispatchCommand,
     createCommand: _createActions.createCommand,
@@ -1150,7 +1126,7 @@ var exportObject = {
     PureRenderComponent: _componentsPureRenderComponent.PureRenderComponent,
     createPureComponent: _componentsPureRenderComponent.createPureComponent,
     shallowEqual: _utilsShallowEqual2['default'],
-    EventBus: _utilsEventBus2['default'],
+    EventBus: EventBus,
     ActionDispatcher: _utilsActionDispatcher2['default']
 };
 

@@ -148,7 +148,7 @@ function createWebpackConfig(jsFile, htmlFile, mainFileName) {
         // debug: isProduction() ? false : true,
         devtool: isProduction() ? null : 'eval-cheap-module-source-map',
         devServer: {
-            port: 5000,
+            port: 5001,
             host: "0.0.0.0",
             contentBase: './',
             historyApiFallback: true,
