@@ -69,7 +69,7 @@ const DEFAULT_OPTIONS = {
     contextTypes: {},
     exposeStore: DEFAULT_STORE_CONTEXT_NAME,
     requireStore: DEFAULT_STORE_CONTEXT_NAME,
-    componentName:null
+    componentName: null
 };
 
 var USING_DEFAULT_OPTIONS = DEFAULT_OPTIONS;
@@ -78,11 +78,33 @@ export function setConnectDefaultOptions(defaultOptions) {
 }
 
 
-function getStoreInsAttr(StoreIns) {
-    var isArrayStoreIns = isArray(StoreIns);
-    var storeInsArray = isArrayStoreIns ? StoreIns : [StoreIns];
+function getParamStoreInstanceFromContext(connectComponentInstance) {
+    var connectComponentInstanceContext = connectComponentInstance.context;
+    if (connectComponentInstanceContext) {
+        var options = connectComponentInstance.connectOptions;
+        var {requireStore} = options;
+        var requireStoreInstance = connectComponentInstanceContext[requireStore];
+        return requireStoreInstance;
+    }
+    return null;
+}
+
+
+function getStoreAttribute(paramStoreInstance, connectComponentInstance) {
+
+    if (!paramStoreInstance) {
+        paramStoreInstance = getParamStoreInstanceFromContext(connectComponentInstance);
+    }
+
+    if (!paramStoreInstance) {
+        var connectOptions = connectComponentInstance.connectOptions;
+        throw new Error('cannot find paramStoreInstance : ', connectOptions);
+    }
+
+    var isArrayStoreIns = isArray(paramStoreInstance);
+    var storeInsArray = isArrayStoreIns ? paramStoreInstance : [paramStoreInstance];
     var storeInsArrayLength = storeInsArray.length;
-    return {isArrayStoreIns,storeInsArray,storeInsArrayLength};
+    return {isArrayStoreIns, storeInsArray, storeInsArrayLength};
 }
 
 
@@ -102,19 +124,20 @@ function getStoreInsAttr(StoreIns) {
  */
 export function connect(BaseComponent, p1, p2, p3) {
 
-    var StoreIns;
+    var paramStoreInstance = null;
     var mapStateToProps;
     var options;
-    var isNoStoreParam = false; //标记是否省略了StoreIns参数
+    var isWithStoreParam = false;
 
     //省略第StoreIns参数.for demo:[2,3,4,5]
     if (isFunction(p1) || !p1) {
-        isNoStoreParam = true;
+
+        isWithStoreParam = false;
         mapStateToProps = p1;
         options = p2;
     } else {
-        isNoStoreParam = false;
-        StoreIns = p1;
+        isWithStoreParam = true;
+        paramStoreInstance = p1;
         mapStateToProps = p2;
         options = p3;
     }
@@ -135,12 +158,12 @@ export function connect(BaseComponent, p1, p2, p3) {
             this.stateWaiting = {};
             this.haveOwnPropsChanged = CONST_TRUE;
             this.hasStoreStateChanged = CONST_TRUE;
-
+            this.connectOptions = options;
             return {};
         },
 
         shouldComponentUpdate() {
-            if (!isNoStoreParam) { //有参数
+            if (isWithStoreParam) { //有参数
                 return !pure || this.haveOwnPropsChanged || this.hasStoreStateChanged
             }
             return true;
@@ -155,22 +178,12 @@ export function connect(BaseComponent, p1, p2, p3) {
 
         componentDidMount() {
             var that = this;
-
             ActionDispatcher.on(CommandEvent, that.handleCommand);
-
-            if (isNoStoreParam) {
-
-
-
-
-                //TODO
-            }else {
-                var {isArrayStoreIns,storeInsArray,storeInsArrayLength} = getStoreInsAttr(StoreIns);
-                forEach(storeInsArray, function (StoreIns0) {
-                    StoreIns0.addChangeListener(that.handleAllStoreChange);
-                });
-                that.handleAllStoreChange();
-            }
+            var {storeInsArray} = getStoreAttribute(paramStoreInstance, that);
+            forEach(storeInsArray, function (StoreIns0) {
+                StoreIns0.addChangeListener(that.handleAllStoreChange);
+            });
+            that.handleAllStoreChange();
         },
 
         componentWillUnmount() {
@@ -178,14 +191,11 @@ export function connect(BaseComponent, p1, p2, p3) {
 
             ActionDispatcher.off(CommandEvent, that.handleCommand);
 
-            if (isNoStoreParam) {
-                //TODO
-            }else {
-                var {isArrayStoreIns,storeInsArray,storeInsArrayLength} = getStoreInsAttr(StoreIns);
-                forEach(storeInsArray, function (StoreIns0) {
-                    StoreIns0.removeChangeListener(that.handleAllStoreChange);
-                });
-            }
+            var {storeInsArray} = getStoreAttribute(paramStoreInstance, that);
+            forEach(storeInsArray, function (StoreIns0) {
+                StoreIns0.removeChangeListener(that.handleAllStoreChange);
+            });
+
 
             if (that.stateDebounceHandler) {
                 clearTimeout(that.stateDebounceHandler);
@@ -207,11 +217,12 @@ export function connect(BaseComponent, p1, p2, p3) {
         },
 
 
-        handleAllStoreChange(changedState, StoreInsSource){
+        handleAllStoreChange(){
+
             var that = this;
 
             var stateMerge = {};
-            var {isArrayStoreIns,storeInsArray,storeInsArrayLength} = getStoreInsAttr(StoreIns);
+            var {storeInsArray} = getStoreAttribute(paramStoreInstance, that);
             forEach(storeInsArray, function (StoreIns0, index) {
                 var stateTmp = StoreIns0.getState();
                 stateMerge[STATE_ITEM_NAME + index] = stateTmp;
@@ -233,7 +244,7 @@ export function connect(BaseComponent, p1, p2, p3) {
         render() {
 
             var that = this;
-            if (!that.stateInited && !isNoStoreParam) {
+            if (!that.stateInited) {
                 return CONST_NULL;
             }
 
@@ -246,24 +257,16 @@ export function connect(BaseComponent, p1, p2, p3) {
 
                 var context = that.context || {};
                 var connectState = that.state;
-                var mapperResult = null;
 
-                if (isNoStoreParam) {
-
-                    //如果没有Store作为参数,使用Context上面存储的Store去Mapper
-                    var contextState = context[requireStore] || {};
-                    mapperResult = mapStateToProps(contextState, props, context, connectState, that);
-                } else {
-
-                    //如果有Store作为参数,使用Store去Mapper
-                    var {isArrayStoreIns,storeInsArray,storeInsArrayLength} = getStoreInsAttr(StoreIns);
-                    var stateParamForCalc = getStateParam(connectState, isArrayStoreIns, storeInsArrayLength);
-                    mapperResult = mapStateToProps(stateParamForCalc, props, context, connectState, that);
-                }
+                //如果有Store作为参数,使用Store去Mapper
+                var {isArrayStoreIns,storeInsArrayLength} = getStoreAttribute(paramStoreInstance, that);
+                var stateParamForCalc = getStateParam(connectState, isArrayStoreIns, storeInsArrayLength);
+                var mapperResult = mapStateToProps(stateParamForCalc, props, context, connectState, that);
 
                 if (mapperResult) {
                     props = extend(props, mapperResult);
                 }
+
             }
 
             return (<BaseComponent {...props} ref="BaseComponentIns"/>);
@@ -271,27 +274,22 @@ export function connect(BaseComponent, p1, p2, p3) {
 
     };
 
-    if (!isNoStoreParam) {
+
+    if (isWithStoreParam) {
 
         StateProviderComponent.getChildContext = function () {
-            var {isArrayStoreIns, storeInsArray, storeInsArrayLength} = getStoreInsAttr(StoreIns);
-            var stateParamForCalc = getStateParam(this.state, isArrayStoreIns, storeInsArrayLength);
             return {
-                [exposeStore + '_StoreIns']: StoreIns,
-                [exposeStore]: stateParamForCalc
+                [exposeStore]: paramStoreInstance
             }
         };
 
         StateProviderComponent.childContextTypes = {
-            [exposeStore]: storeShape,
-            [exposeStore + '_StoreIns']: storeShape
+            [exposeStore]: storeShape
         };
-
     }
 
     StateProviderComponent.contextTypes = extend({
         [requireStore]: storeShape,
-        [requireStore + '_StoreIns']: storeShape,
         router: propTypeAny
     }, toContextTypes(contextTypes));
 

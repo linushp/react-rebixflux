@@ -637,6 +637,36 @@ function setConnectDefaultOptions(defaultOptions) {
     USING_DEFAULT_OPTIONS = (0, _utilsFunctions.extend)({}, DEFAULT_OPTIONS, defaultOptions);
 }
 
+function getParamStoreInstanceFromContext(connectComponentInstance) {
+    var options = connectComponentInstance.connectOptions;
+    var requireStore = options.requireStore;
+
+    var requireStoreInstanceName = requireStore + '_StoreInstance';
+    var connectComponentInstanceContext = connectComponentInstance.context;
+    if (connectComponentInstanceContext) {
+        var requireStoreInstance = connectComponentInstanceContext[requireStoreInstanceName];
+        return requireStoreInstance;
+    }
+    return null;
+}
+
+function getStoreAttribute(paramStoreInstance, connectComponentInstance) {
+
+    if (!paramStoreInstance) {
+        paramStoreInstance = getParamStoreInstanceFromContext(connectComponentInstance);
+    }
+
+    if (!paramStoreInstance) {
+        var connectOptions = connectComponentInstance.connectOptions;
+        throw new Error('cannot find paramStoreInstance : ', connectOptions);
+    }
+
+    var isArrayStoreIns = (0, _utilsFunctions.isArray)(paramStoreInstance);
+    var storeInsArray = isArrayStoreIns ? paramStoreInstance : [paramStoreInstance];
+    var storeInsArrayLength = storeInsArray.length;
+    return { isArrayStoreIns: isArrayStoreIns, storeInsArray: storeInsArray, storeInsArrayLength: storeInsArrayLength };
+}
+
 /**
  * demo：
  * 1. connect(BaseComponent,Store,mapStateToProps,options)
@@ -655,37 +685,24 @@ function setConnectDefaultOptions(defaultOptions) {
 function connect(BaseComponent, p1, p2, p3) {
     var _extend;
 
-    var StoreIns;
+    var paramStoreInstance = null;
     var mapStateToProps;
     var options;
-
-    var isArrayStoreIns = false;
-    var storeInsArray = [];
-    var storeInsArrayLength = 0;
-    var isNoStoreParam = false; //标记是否省略了StoreIns参数
+    var isWithStoreParam = false;
 
     //省略第StoreIns参数.for demo:[2,3,4,5]
     if ((0, _utilsFunctions.isFunction)(p1) || !p1) {
-
+        isWithStoreParam = false;
         mapStateToProps = p1;
         options = p2;
-
-        isNoStoreParam = true;
-        isArrayStoreIns = false;
-        storeInsArray = [];
-        storeInsArrayLength = 0;
     } else {
-
-        StoreIns = p1;
+        isWithStoreParam = true;
+        paramStoreInstance = p1;
         mapStateToProps = p2;
         options = p3;
-
-        isArrayStoreIns = (0, _utilsFunctions.isArray)(StoreIns);
-        storeInsArray = isArrayStoreIns ? StoreIns : [StoreIns];
-        storeInsArrayLength = storeInsArray.length;
     }
 
-    options = (0, _utilsFunctions.extend)(USING_DEFAULT_OPTIONS, options || {});
+    options = (0, _utilsFunctions.extend)({}, USING_DEFAULT_OPTIONS, options || {});
     var _options = options;
     var pure = _options.pure;
     var debounce = _options.debounce;
@@ -704,12 +721,12 @@ function connect(BaseComponent, p1, p2, p3) {
             this.stateWaiting = {};
             this.haveOwnPropsChanged = CONST_TRUE;
             this.hasStoreStateChanged = CONST_TRUE;
-
+            this.connectOptions = options;
             return {};
         },
 
         shouldComponentUpdate: function shouldComponentUpdate() {
-            if (!isNoStoreParam) {
+            if (isWithStoreParam) {
                 //有参数
                 return !pure || this.haveOwnPropsChanged || this.hasStoreStateChanged;
             }
@@ -724,15 +741,16 @@ function connect(BaseComponent, p1, p2, p3) {
 
         componentDidMount: function componentDidMount() {
             var that = this;
-
             _utilsActionDispatcher2['default'].on(_utilsActionDispatcher.CommandEvent, that.handleCommand);
 
-            if (!isNoStoreParam) {
-                (0, _utilsFunctions.forEach)(storeInsArray, function (StoreIns0) {
-                    StoreIns0.addChangeListener(that.handleAllStoreChange);
-                });
-                that.handleAllStoreChange();
-            }
+            var _getStoreAttribute = getStoreAttribute(paramStoreInstance, that);
+
+            var storeInsArray = _getStoreAttribute.storeInsArray;
+
+            (0, _utilsFunctions.forEach)(storeInsArray, function (StoreIns0) {
+                StoreIns0.addChangeListener(that.handleAllStoreChange);
+            });
+            that.handleAllStoreChange();
         },
 
         componentWillUnmount: function componentWillUnmount() {
@@ -740,11 +758,13 @@ function connect(BaseComponent, p1, p2, p3) {
 
             _utilsActionDispatcher2['default'].off(_utilsActionDispatcher.CommandEvent, that.handleCommand);
 
-            if (!isNoStoreParam) {
-                (0, _utilsFunctions.forEach)(storeInsArray, function (StoreIns0) {
-                    StoreIns0.removeChangeListener(that.handleAllStoreChange);
-                });
-            }
+            var _getStoreAttribute2 = getStoreAttribute(paramStoreInstance, that);
+
+            var storeInsArray = _getStoreAttribute2.storeInsArray;
+
+            (0, _utilsFunctions.forEach)(storeInsArray, function (StoreIns0) {
+                StoreIns0.removeChangeListener(that.handleAllStoreChange);
+            });
 
             if (that.stateDebounceHandler) {
                 clearTimeout(that.stateDebounceHandler);
@@ -773,6 +793,11 @@ function connect(BaseComponent, p1, p2, p3) {
             var that = this;
 
             var stateMerge = {};
+
+            var _getStoreAttribute3 = getStoreAttribute(paramStoreInstance, that);
+
+            var storeInsArray = _getStoreAttribute3.storeInsArray;
+
             (0, _utilsFunctions.forEach)(storeInsArray, function (StoreIns0, index) {
                 var stateTmp = StoreIns0.getState();
                 stateMerge[STATE_ITEM_NAME + index] = stateTmp;
@@ -790,10 +815,9 @@ function connect(BaseComponent, p1, p2, p3) {
         },
 
         render: function render() {
-            var componentName0 = componentName;
 
             var that = this;
-            if (!that.stateInited && !isNoStoreParam) {
+            if (!that.stateInited && isWithStoreParam) {
                 return CONST_NULL;
             }
 
@@ -808,18 +832,21 @@ function connect(BaseComponent, p1, p2, p3) {
                 var connectState = that.state;
                 var mapperResult = null;
 
-                if (isNoStoreParam) {
-
-                    //如果没有Store作为参数,使用Context上面存储的Store去Mapper
-
-                    var contextState = context[requireStore] || {};
-                    mapperResult = mapStateToProps(contextState, props, context, connectState, that);
-                } else {
+                if (isWithStoreParam) {
 
                     //如果有Store作为参数,使用Store去Mapper
 
+                    var _getStoreAttribute4 = getStoreAttribute(paramStoreInstance, that);
+
+                    var isArrayStoreIns = _getStoreAttribute4.isArrayStoreIns;
+                    var storeInsArrayLength = _getStoreAttribute4.storeInsArrayLength;
+
                     var stateParamForCalc = getStateParam(connectState, isArrayStoreIns, storeInsArrayLength);
                     mapperResult = mapStateToProps(stateParamForCalc, props, context, connectState, that);
+                } else {
+                    //如果没有Store作为参数,使用Context上面存储的Store去Mapper
+                    var contextState = context[requireStore] || {};
+                    mapperResult = mapStateToProps(contextState, props, context, connectState, that);
                 }
 
                 if (mapperResult) {
@@ -832,17 +859,25 @@ function connect(BaseComponent, p1, p2, p3) {
 
     };
 
-    if (!isNoStoreParam) {
+    if (isWithStoreParam) {
+        var _StateProviderComponent$childContextTypes;
 
         StateProviderComponent.getChildContext = function () {
+            var _ref;
+
+            var _getStoreAttribute5 = getStoreAttribute(paramStoreInstance, this);
+
+            var isArrayStoreIns = _getStoreAttribute5.isArrayStoreIns;
+            var storeInsArrayLength = _getStoreAttribute5.storeInsArrayLength;
+
             var stateParamForCalc = getStateParam(this.state, isArrayStoreIns, storeInsArrayLength);
-            return _defineProperty({}, exposeStore, stateParamForCalc);
+            return _ref = {}, _defineProperty(_ref, exposeStore + '_StoreInstance', paramStoreInstance), _defineProperty(_ref, exposeStore, stateParamForCalc), _ref;
         };
 
-        StateProviderComponent.childContextTypes = _defineProperty({}, exposeStore, storeShape);
+        StateProviderComponent.childContextTypes = (_StateProviderComponent$childContextTypes = {}, _defineProperty(_StateProviderComponent$childContextTypes, exposeStore, storeShape), _defineProperty(_StateProviderComponent$childContextTypes, exposeStore + '_StoreInstance', storeShape), _StateProviderComponent$childContextTypes);
     }
 
-    StateProviderComponent.contextTypes = (0, _utilsFunctions.extend)((_extend = {}, _defineProperty(_extend, requireStore, storeShape), _defineProperty(_extend, 'router', propTypeAny), _extend), toContextTypes(contextTypes));
+    StateProviderComponent.contextTypes = (0, _utilsFunctions.extend)((_extend = {}, _defineProperty(_extend, requireStore, storeShape), _defineProperty(_extend, requireStore + '_StoreInstance', storeShape), _defineProperty(_extend, 'router', propTypeAny), _extend), toContextTypes(contextTypes));
 
     return _react2['default'].createClass(StateProviderComponent);
 }
