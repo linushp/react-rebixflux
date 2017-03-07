@@ -154,12 +154,13 @@ export function connect(BaseComponent, p1, p2, p3) {
 
         getInitialState() {
             // this.state = {};
-            this.stateInited = CONST_FALSE;
-            this.stateDebounceHandler = 0; //timeoutHandler
-            this.stateWaiting = {};
-            this.haveOwnPropsChanged = CONST_TRUE;
-            this.hasStoreStateChanged = CONST_TRUE;
-            this.connectOptions = options;
+            var that = this;
+            that.stateInited = CONST_FALSE;
+            that.stateDebounceHandler = 0; //timeoutHandler
+            that.stateWaiting = {};
+            that.haveOwnPropsChanged = CONST_TRUE;
+            that.hasStoreStateChanged = CONST_TRUE;
+            that.connectOptions = options;
             return {};
         },
 
@@ -276,13 +277,11 @@ export function connect(BaseComponent, p1, p2, p3) {
 
 
     if (isWithStoreParam) {
-
         StateProviderComponent.getChildContext = function () {
             return {
                 [exposeStore]: paramStoreInstance
             }
         };
-
         StateProviderComponent.childContextTypes = {
             [exposeStore]: storeShape
         };
