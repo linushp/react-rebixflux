@@ -73,7 +73,7 @@ const DEFAULT_OPTIONS = {
 };
 
 var CONNECT_DEFAULT_OPTIONS = DEFAULT_OPTIONS;
-export function setConnectDefaultOptions(defaultOptions) {
+function setConnectDefaultOptions(defaultOptions) {
     CONNECT_DEFAULT_OPTIONS = extend({}, DEFAULT_OPTIONS, defaultOptions);
 }
 
@@ -123,7 +123,7 @@ var connectedComponentIndex = 0;
  * @param p3
  * @returns {StateProviderComponent}
  */
-export function connect(BaseComponent, p1, p2, p3) {
+function connect(BaseComponent, p1, p2, p3) {
 
     var paramStoreInstance = null;
     var mapStateToProps;
@@ -295,3 +295,9 @@ export function connect(BaseComponent, p1, p2, p3) {
 
     return React.createClass(StateProviderComponent);
 }
+
+
+module.exports = {
+    connect: connect,
+    setConnectDefaultOptions: setConnectDefaultOptions
+};

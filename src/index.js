@@ -2,9 +2,9 @@ import {createStore} from './createStore';
 import {createMergedStore} from './createMergedStore';
 import shallowEqual from './utils/shallowEqual';
 import {dispatchCommand, createCommand, createAction, createActions} from './createActions';
-import EventBus from './utils/EventBus';
+var EventBus = require('./utils/EventBus');
 import ActionDispatcher from './utils/ActionDispatcher';
-import * as connectFunctions from './connect';
+var connectFunctions = require('./connect');
 import * as functions from './utils/functions';
 import * as StringUtils from './utils/StringUtils';
 import * as ArrayUtils from './utils/ArrayUtils';
@@ -17,8 +17,8 @@ var exportObject = {
     createActions: createActions,
     createStore: createStore,
     createMergedStore: createMergedStore,
-    PureRenderComponent:PureRenderComponent,
-    createPureComponent:createPureComponent,
+    PureRenderComponent: PureRenderComponent,
+    createPureComponent: createPureComponent,
     shallowEqual: shallowEqual,
     EventBus: EventBus,
     ActionDispatcher: ActionDispatcher
