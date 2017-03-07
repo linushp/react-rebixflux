@@ -165,12 +165,8 @@ function connect(BaseComponent, p1, p2, p3) {
         },
 
         shouldComponentUpdate() {
-            if (isWithStoreParam) { //有参数
-                return !pure || this.haveOwnPropsChanged || this.hasStoreStateChanged
-            }
-            return true;
+            return !pure || this.haveOwnPropsChanged || this.hasStoreStateChanged
         },
-
 
         componentWillReceiveProps(nextProps) {
             if (!pure || !shallowEqual(nextProps, this.props)) {
