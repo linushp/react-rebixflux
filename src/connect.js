@@ -72,9 +72,9 @@ const DEFAULT_OPTIONS = {
     componentName: null
 };
 
-var USING_DEFAULT_OPTIONS = DEFAULT_OPTIONS;
+var CONNECT_DEFAULT_OPTIONS = DEFAULT_OPTIONS;
 export function setConnectDefaultOptions(defaultOptions) {
-    USING_DEFAULT_OPTIONS = extend({}, DEFAULT_OPTIONS, defaultOptions);
+    CONNECT_DEFAULT_OPTIONS = extend({}, DEFAULT_OPTIONS, defaultOptions);
 }
 
 
@@ -107,6 +107,7 @@ function getStoreAttribute(paramStoreInstance, connectComponentInstance) {
     return {isArrayStoreIns, storeInsArray, storeInsArrayLength};
 }
 
+var connectedComponentIndex = 0;
 
 /**
  * demo：
@@ -143,15 +144,15 @@ export function connect(BaseComponent, p1, p2, p3) {
     }
 
 
-    options = extend({}, USING_DEFAULT_OPTIONS, options || {});
+    options = extend({}, CONNECT_DEFAULT_OPTIONS, options || {});
     var {pure, debounce, contextTypes, exposeStore, requireStore,componentName} = options;
-
+    componentName = componentName || ("ConnectedComponent" + (connectedComponentIndex++));
 
     var StateProviderComponent = {
 
+        displayName: componentName,
 
         getInitialState() {
-
             // this.state = {};
             this.stateInited = CONST_FALSE;
             this.stateDebounceHandler = 0; //timeoutHandler
@@ -230,8 +231,7 @@ export function connect(BaseComponent, p1, p2, p3) {
 
             that.stateInited = CONST_TRUE;
 
-            if (debounce) {
-                //防抖
+            if (debounce) {//防抖
                 setStateDebounce(that, stateMerge)
             } else {
                 that.hasStoreStateChanged = CONST_TRUE;
