@@ -207,9 +207,8 @@ function connect(BaseComponent, p1, p2, p3) {
             var commandHandlerName = "onCmd" + toFirstCharUpper(actionName);// onCmdXXX
             var componentIns = this.refs['BaseComponentIns'];
             if (componentIns) {
-                var commandHandler = componentIns[commandHandlerName];
-                if (commandHandler) {
-                    commandHandler(payload, status, actionName, actionGroup);
+                if (isFunction(componentIns[commandHandlerName])) {
+                    componentIns[commandHandlerName](payload, status, actionName, actionGroup);
                 }
             }
         },
