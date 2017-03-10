@@ -109,10 +109,16 @@ function objectAssign(obj) {
     return obj;
 }
 
+function isType(x, type) {
+    return Object.prototype.toString.call(x) === '[object ' + type + ']';
+}
+
 var extend = Object.assign || objectAssign;
 
 exports.extend = extend;
-var isArray = Array.isArray;
+var isArray = Array.isArray || function (x) {
+    return isType(x, 'Array');
+};
 
 exports.isArray = isArray;
 var forEach = function forEach(obj, it) {
@@ -129,9 +135,6 @@ var forEach = function forEach(obj, it) {
 };
 
 exports.forEach = forEach;
-function isType(x, type) {
-    return Object.prototype.toString.call(x) === '[object ' + type + ']';
-}
 
 function isFunction(x) {
     return isType(x, 'Function');
@@ -775,9 +778,8 @@ function connect(BaseComponent, p1, p2, p3) {
             var commandHandlerName = "onCmd" + (0, _utilsStringUtils.toFirstCharUpper)(actionName); // onCmdXXX
             var componentIns = this.refs['BaseComponentIns'];
             if (componentIns) {
-                var commandHandler = componentIns[commandHandlerName];
-                if (commandHandler) {
-                    commandHandler(payload, status, actionName, actionGroup);
+                if ((0, _utilsFunctions.isFunction)(componentIns[commandHandlerName])) {
+                    componentIns[commandHandlerName](payload, status, actionName, actionGroup);
                 }
             }
         },
