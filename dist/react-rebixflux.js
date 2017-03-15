@@ -86,8 +86,6 @@ return /******/ (function(modules) { // webpackBootstrap
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
-exports.isFunction = isFunction;
-exports.isString = isString;
 var keysFunc = Object.keys;
 
 var undefinedOnly = false;
@@ -109,18 +107,24 @@ function objectAssign(obj) {
     return obj;
 }
 
-function isType(x, type) {
-    return Object.prototype.toString.call(x) === '[object ' + type + ']';
+function createIsType(type) {
+    return function (x) {
+        return Object.prototype.toString.call(x) === '[object ' + type + ']';
+    };
 }
 
 var extend = Object.assign || objectAssign;
 
 exports.extend = extend;
-var isArray = Array.isArray || function (x) {
-    return isType(x, 'Array');
-};
+var isArray = Array.isArray || createIsType('Array');
 
 exports.isArray = isArray;
+var isFunction = createIsType('Function');
+
+exports.isFunction = isFunction;
+var isString = createIsType('String');
+
+exports.isString = isString;
 var forEach = function forEach(obj, it) {
     if (isArray(obj)) {
         Array.prototype.forEach.call(obj, it);
@@ -133,16 +137,7 @@ var forEach = function forEach(obj, it) {
         }
     }
 };
-
 exports.forEach = forEach;
-
-function isFunction(x) {
-    return isType(x, 'Function');
-}
-
-function isString(x) {
-    return isType(x, 'String');
-}
 
 /***/ }),
 /* 1 */
@@ -154,19 +149,14 @@ function isString(x) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-
-var _EventBus = __webpack_require__(2);
-
-var _EventBus2 = _interopRequireDefault(_EventBus);
+var EventBus = __webpack_require__(2);
 
 var ActionEvent = "ActionEvent";
 exports.ActionEvent = ActionEvent;
 var CommandEvent = "CommandEvent";
 
 exports.CommandEvent = CommandEvent;
-exports["default"] = new _EventBus2["default"]("ActionDispatcher", function (listener, m1, m2, m3, m4, m5) {
+exports["default"] = new EventBus("ActionDispatcher", function (listener, m1, m2, m3, m4, m5) {
 
     try {
         listener(m1, m2, m3, m4, m5);
@@ -332,10 +322,6 @@ exports.createStore = createStore;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _utilsEventBus = __webpack_require__(2);
-
-var _utilsEventBus2 = _interopRequireDefault(_utilsEventBus);
-
 var _utilsActionDispatcher = __webpack_require__(1);
 
 var _utilsActionDispatcher2 = _interopRequireDefault(_utilsActionDispatcher);
@@ -345,6 +331,8 @@ var _utilsStringUtils = __webpack_require__(4);
 var _utilsArrayUtils = __webpack_require__(3);
 
 var _utilsFunctions = __webpack_require__(0);
+
+var EventBus = __webpack_require__(2);
 
 var EVENT_STORE_CHANGE = 'StoreChange';
 exports.EVENT_STORE_CHANGE = EVENT_STORE_CHANGE;
@@ -428,7 +416,7 @@ function RebixfluxStoreClass(storeConfig) {
     var that = this;
     that.$$storeConfig = storeConfig;
     that.$$ClassName = STORE_CLASS_NAME;
-    that.$$eventBus = new _utilsEventBus2['default']('StoreEventBus');
+    that.$$eventBus = new EventBus('StoreEventBus');
     that.$$state = initialState; //extend({}, initialState);
 
     that.$$handleActionEvent = function (actionEvent) {
@@ -942,7 +930,7 @@ function createAction(actionGroup, actionName, func, actionsConfig, eventName) {
 function createActions(actionGroup, actionsConfig) {
 
     if (!(0, _utilsFunctions.isString)(actionGroup)) {
-        throw new Error('1st param of createActions must string');
+        throw new Error('1st param is not string');
     }
 
     var actions = {};
@@ -979,15 +967,11 @@ Object.defineProperty(exports, '__esModule', {
 });
 exports.createMergedStore = createMergedStore;
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-var _utilsEventBus = __webpack_require__(2);
-
-var _utilsEventBus2 = _interopRequireDefault(_utilsEventBus);
-
 var _utilsFunctions = __webpack_require__(0);
 
 var _createStore = __webpack_require__(6);
+
+var EventBus = __webpack_require__(2);
 
 var STORE_CLASS_NAME_CONST = _createStore.STORE_CLASS_NAME;
 
@@ -1010,7 +994,7 @@ function RebixfluxMergedStore(storeConfig) {
     var that = this;
     that.$$storeConfig = storeConfig;
     that.$$ClassName = STORE_CLASS_NAME_CONST;
-    that.$$eventBus = new _utilsEventBus2['default']('MergedStoreEventBus');
+    that.$$eventBus = new EventBus('MergedStoreEventBus');
     that.$$state = mergeStoreState(storeConfig);
 
     that.enableListener = function () {

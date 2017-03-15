@@ -1,4 +1,5 @@
-import EventBus from './utils/EventBus';
+var EventBus  = require('./utils/EventBus');
+
 import ActionDispatcher, {ActionEvent, CommandEvent} from './utils/ActionDispatcher';
 import {toFirstCharUpper, startWith} from './utils/StringUtils';
 import {toArray} from './utils/ArrayUtils';

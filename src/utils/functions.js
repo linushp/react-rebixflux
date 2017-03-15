@@ -19,15 +19,20 @@ function objectAssign(obj) {
     return obj;
 }
 
-function isType(x, type) {
-    return Object.prototype.toString.call(x) === '[object ' + type + ']';
+
+function createIsType(type){
+    return function (x){
+        return Object.prototype.toString.call(x) === '[object ' + type + ']';
+    }
 }
 
 export const extend = Object.assign || objectAssign;
 
-export const isArray = Array.isArray || function (x) {
-        return isType(x, 'Array');
-    };
+export const isArray = Array.isArray || createIsType('Array');
+
+export const isFunction = createIsType('Function');
+
+export const isString = createIsType('String');
 
 export const forEach = function (obj, it) {
     if (isArray(obj)) {
@@ -41,11 +46,3 @@ export const forEach = function (obj, it) {
         }
     }
 };
-
-
-export function isFunction(x) {
-    return isType(x, 'Function');
-}
-export function isString(x) {
-    return isType(x, 'String');
-}

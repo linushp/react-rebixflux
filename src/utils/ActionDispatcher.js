@@ -1,4 +1,4 @@
-import EventBus from './EventBus';
+var EventBus = require('./EventBus');
 
 export const ActionEvent = "ActionEvent";
 export const CommandEvent = "CommandEvent";

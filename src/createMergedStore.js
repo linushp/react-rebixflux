@@ -1,4 +1,4 @@
-import EventBus from './utils/EventBus';
+var EventBus = require('./utils/EventBus');
 import {forEach} from './utils/functions'
 import {EVENT_STORE_CHANGE, STORE_CLASS_NAME} from './createStore';
 

@@ -1,7 +1,7 @@
 import {forEach, isString} from './utils/functions'
 import {toArray} from './utils/ArrayUtils';
 import isPromise from './utils/isPromise';
-import ActionDispatcher, {ActionEvent, CommandEvent}from './utils/ActionDispatcher';
+import ActionDispatcher, {ActionEvent, CommandEvent} from './utils/ActionDispatcher';
 
 const STATUS_PENDING = 'pending';
 const STATUS_SUCCESS = 'success';
@@ -53,7 +53,7 @@ export function createAction(actionGroup, actionName, func, actionsConfig, event
 export function createActions(actionGroup, actionsConfig) {
 
     if (!isString(actionGroup)) {
-        throw new Error('1st param of createActions must string');
+        throw new Error('1st param is not string');
     }
 
     var actions = {};
