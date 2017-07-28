@@ -885,12 +885,13 @@ var STATUS_PENDING = 'pending';
 var STATUS_SUCCESS = 'success';
 var STATUS_ERROR = 'error';
 
-function emitActionEvent(actionGroup, actionName, eventName, status, payload) {
+function emitActionEvent(actionGroup, actionName, eventName, status, payload, args) {
     _utilsActionDispatcher2['default'].emit(eventName, {
         actionName: actionName,
         actionGroup: actionGroup,
         status: status,
-        payload: payload
+        payload: payload,
+        args: args
     });
 }
 
@@ -906,14 +907,14 @@ function createAction(actionGroup, actionName, func, actionsConfig, eventName) {
         if ((0, _utilsIsPromise2['default'])(result)) {
 
             result.then(function (data) {
-                emitActionEvent(actionGroup, actionName, eventName, STATUS_SUCCESS, data);
+                emitActionEvent(actionGroup, actionName, eventName, STATUS_SUCCESS, data, args);
             }, function (data) {
-                emitActionEvent(actionGroup, actionName, eventName, STATUS_ERROR, data);
+                emitActionEvent(actionGroup, actionName, eventName, STATUS_ERROR, data, args);
             });
 
-            emitActionEvent(actionGroup, actionName, eventName, STATUS_PENDING, result);
+            emitActionEvent(actionGroup, actionName, eventName, STATUS_PENDING, result, args);
         } else {
-            emitActionEvent(actionGroup, actionName, eventName, STATUS_SUCCESS, result);
+            emitActionEvent(actionGroup, actionName, eventName, STATUS_SUCCESS, result, args);
         }
 
         return result;

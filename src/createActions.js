@@ -7,12 +7,13 @@ const STATUS_PENDING = 'pending';
 const STATUS_SUCCESS = 'success';
 const STATUS_ERROR = 'error';
 
-function emitActionEvent(actionGroup, actionName, eventName, status, payload) {
+function emitActionEvent(actionGroup, actionName, eventName, status, payload, args) {
     ActionDispatcher.emit(eventName, {
         actionName,
         actionGroup,
         status,
-        payload
+        payload,
+        args
     });
 }
 
@@ -28,14 +29,14 @@ export function createAction(actionGroup, actionName, func, actionsConfig, event
         if (isPromise(result)) {
 
             result.then(function (data) {
-                emitActionEvent(actionGroup, actionName, eventName, STATUS_SUCCESS, data);
+                emitActionEvent(actionGroup, actionName, eventName, STATUS_SUCCESS, data, args);
             }, function (data) {
-                emitActionEvent(actionGroup, actionName, eventName, STATUS_ERROR, data);
+                emitActionEvent(actionGroup, actionName, eventName, STATUS_ERROR, data, args);
             });
 
-            emitActionEvent(actionGroup, actionName, eventName, STATUS_PENDING, result);
+            emitActionEvent(actionGroup, actionName, eventName, STATUS_PENDING, result, args);
         } else {
-            emitActionEvent(actionGroup, actionName, eventName, STATUS_SUCCESS, result);
+            emitActionEvent(actionGroup, actionName, eventName, STATUS_SUCCESS, result, args);
         }
 
         return result;
